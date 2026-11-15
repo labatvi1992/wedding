@@ -115,9 +115,6 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
             <h3 className="font-serif-editorial text-xl sm:text-2xl font-semibold uppercase tracking-wide text-stone-900">
               {config.brideName.toUpperCase()}
             </h3>
-            <p className="font-serif-editorial text-xs sm:text-sm tracking-[0.14em] text-stone-700 mt-0.5 font-medium">
-              {config.brideDob || '14.02.2003'}
-            </p>
           </div>
         </motion.div>
 
@@ -180,9 +177,6 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
             <h3 className="font-serif-editorial text-xl sm:text-2xl font-medium uppercase tracking-wide text-white">
               {config.groomName.toUpperCase()}
             </h3>
-            <p className="font-serif-editorial text-xs sm:text-sm tracking-[0.14em] text-stone-200 mt-0.5">
-              {config.groomDob || '10.09.1996'}
-            </p>
           </div>
         </motion.div>
       </div>

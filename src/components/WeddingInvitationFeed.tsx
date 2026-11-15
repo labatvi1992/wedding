@@ -128,7 +128,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
     onAddWish(newWish);
     setQuickWishText('');
     handleHeartReaction();
-    showToast('Đã gửi lời chúc hạnh phúc tới Quỳnh Hương & Minh Anh!');
+    showToast(`Đã gửi lời chúc hạnh phúc tới ${config.brideName} & ${config.groomName}!`);
   };
 
   const handleRsvpSubmit = async (e: React.FormEvent) => {

@@ -88,7 +88,7 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
             TIỆC MỪNG LỄ THÀNH HÔN
           </p>
           <p className="font-serif-editorial text-base sm:text-lg tracking-[0.05em] uppercase text-stone-800">
-            VÀO LÚC {config.weddingTime || '09:00'} THỨ SÁU
+            VÀO LÚC {config.weddingTime || '11:00'} CHỦ NHẬT
           </p>
 
           {/* THÁNG 10 | 22 | NĂM 2027 */}

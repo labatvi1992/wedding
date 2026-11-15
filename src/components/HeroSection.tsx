@@ -24,7 +24,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, guestName }) =
         />
 
         {/* Soft top-left & bottom gradient overlays for script legibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-transparent to-white/95 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/75 via-transparent to-white/95 pointer-events-none" />
 
         {/* Top-left "Save The Date" Script Title */}
         <motion.div
@@ -33,11 +33,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, guestName }) =
           transition={{ duration: 0.9, delay: 0.25, ease: 'easeOut' }}
           className="absolute top-6 sm:top-8 left-5 sm:left-8 z-10 pointer-events-none"
         >
-          <h2 className="font-calligraphy text-[44px] sm:text-[54px] text-stone-900 leading-none tracking-normal drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]">
+          <h2 className="font-calligraphy text-[44px] sm:text-[54px] text-stone-900 leading-none tracking-normal drop-shadow-[0_2px_8px_rgba(255,255,255,0.95)]">
             Save The Date
           </h2>
           {guestName && (
-            <p className="font-serif-editorial italic text-sm sm:text-base text-stone-700 mt-1 pl-2">
+            <p className="font-serif-editorial italic text-sm sm:text-base text-stone-800 mt-1 pl-2 drop-shadow-[0_1px_4px_rgba(255,255,255,0.9)]">
               Thân mời: <span className="font-semibold text-[#721319]">{guestName}</span>
             </p>
           )}

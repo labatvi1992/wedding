@@ -1,23 +1,16 @@
 import { Guest, GuestWish, WeddingConfig } from '../types/wedding';
-import heroCoupleImg from '../assets/images/hero_wedding_couple_1794574414703.jpg';
-import bridePortraitImg from '../assets/images/bride_quynh_huong_1794574416099.jpg';
-import groomPortraitImg from '../assets/images/groom_minh_anh_1794574417864.jpg';
-import coupleCelebrationImg from '../assets/images/couple_celebration_red_1794574420439.jpg';
-import coupleForeverImg from '../assets/images/couple_forever_curtain_1794574421798.jpg';
 
 export const DEMO_IMAGES = {
-  heroCouple: heroCoupleImg,
-  bridePortrait: bridePortraitImg,
-  groomPortrait: groomPortraitImg,
-  coupleCelebration: coupleCelebrationImg,
-  coupleForever: coupleForeverImg,
+  heroCouple: '/assets/aistudio/01-Hinh-Nen_8e97fd58.JPG',
+  bridePortrait: '/assets/aistudio/02-Co-Dau_2e27414f.JPG',
+  groomPortrait: '/assets/aistudio/03-Chu-Re_4c7c4f1d.JPG',
+  coupleCelebration: '/assets/aistudio/03-Chu-Re_4c7c4f1d.JPG',
+  coupleForever: '/assets/aistudio/01-Hinh-Nen_8e97fd58.JPG',
 };
 
 export const INITIAL_WEDDING_CONFIG: WeddingConfig = {
-  groomName: 'Minh Anh',
-  brideName: 'Quỳnh Hương',
-  groomDob: '10.09.1996',
-  brideDob: '14.02.2003',
+  groomName: 'Đặng Long Vi',
+  brideName: 'Trần Mỹ Quỳnh',
   groomFamily: {
     father: 'Ông. Lê Văn Quân',
     mother: 'Bà. Trần Thị Hoa',
@@ -33,7 +26,7 @@ export const INITIAL_WEDDING_CONFIG: WeddingConfig = {
     zaloPhone: '0987654321',
   },
   weddingDate: '2027-10-22',
-  weddingTime: '09:00',
+  weddingTime: '11:00',
   calendarHeartDay: 26,
   ceremonyDay: 22,
   ceremonyMonth: 'THÁNG 10',
@@ -60,7 +53,7 @@ export const INITIAL_GUESTS: Guest[] = [
     attendeesCount: 2,
     dietaryPreference: 'standard',
     customSlug: 'tran-quoc-bao',
-    wish: 'Chúc hai bạn Quỳnh Hương & Minh Anh trăm năm hạnh phúc, sớm sinh quý tử!',
+    wish: 'Chúc hai bạn Trần Mỹ Quỳnh & Đặng Long Vi trăm năm hạnh phúc, sớm sinh quý tử!',
     giftAmount: 1000000,
     invitedViaZalo: true,
     confirmedAt: '2025-10-15T09:30:00Z',
@@ -76,7 +69,7 @@ export const INITIAL_GUESTS: Guest[] = [
     attendeesCount: 1,
     dietaryPreference: 'standard',
     customSlug: 'mai-anh',
-    wish: 'Hạnh phúc ngập tràn nhé cô dâu Quỳnh Hương xinh đẹp của tụi em!',
+    wish: 'Hạnh phúc ngập tràn nhé cô dâu Trần Mỹ Quỳnh xinh đẹp của tụi em!',
     giftAmount: 500000,
     invitedViaZalo: true,
     confirmedAt: '2025-10-18T14:20:00Z',
@@ -182,7 +175,7 @@ export const INITIAL_WISHES: GuestWish[] = [
     id: 'w-2',
     author: 'Trần Quốc Bảo',
     relationship: 'Bạn thân chú rể',
-    content: 'Chúc người anh em Minh Anh và Quỳnh Hương trăm năm viên mãn hạnh phúc!',
+    content: 'Chúc người anh em Đặng Long Vi và Trần Mỹ Quỳnh trăm năm viên mãn hạnh phúc!',
     createdAt: '5 phút trước',
   },
   {
@@ -196,38 +189,33 @@ export const INITIAL_WISHES: GuestWish[] = [
 
 export const WEDDING_GALLERY_IMAGES = [
   {
-    url: heroCoupleImg,
-    caption: 'Quỳnh Hương & Minh Anh - Save The Date',
-    category: 'Studio',
+    url: DEMO_IMAGES.heroCouple,
+    caption: 'Mỹ Quỳnh & Long Vi - Save The Date',
+    category: 'Hình nền',
   },
   {
-    url: bridePortraitImg,
-    caption: 'Cô dâu Quỳnh Hương - 14.02.2003',
+    url: DEMO_IMAGES.bridePortrait,
+    caption: 'Cô dâu Mỹ Quỳnh',
     category: 'Cô dâu',
   },
   {
-    url: groomPortraitImg,
-    caption: 'Chú rể Minh Anh - 10.09.1996',
+    url: DEMO_IMAGES.groomPortrait,
+    caption: 'Chú rể Long Vi',
     category: 'Chú rể',
   },
   {
-    url: coupleCelebrationImg,
-    caption: 'Khoảnh khắc rạng rỡ bên thảm hoa đỏ',
+    url: DEMO_IMAGES.coupleCelebration,
+    caption: 'Khoảnh khắc rạng rỡ bên nhau',
     category: 'Lễ cưới',
   },
   {
-    url: coupleForeverImg,
+    url: DEMO_IMAGES.coupleForever,
     caption: 'Đời đẩy hai đứa về chung một lối - Forever',
     category: 'Khoảnh khắc',
   },
 ];
 
 export const LOVE_STORY_STEPS = [
-  {
-    year: '08:00',
-    title: 'Lễ Vu Quy',
-    desc: 'Tư gia nhà gái',
-  },
   {
     year: '10:30',
     title: 'Lễ Thành Hôn',

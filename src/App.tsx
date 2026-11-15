@@ -9,9 +9,9 @@ import { WeddingInvitationFeed } from './components/WeddingInvitationFeed';
 import { GuestManagement } from './components/GuestManagement';
 
 const STORAGE_KEYS = {
-  GUESTS: 'wedding_invitation_guests_v2',
-  CONFIG: 'wedding_invitation_config_v2',
-  WISHES: 'wedding_invitation_wishes_v2',
+  GUESTS: 'wedding_invitation_guests_v3',
+  CONFIG: 'wedding_invitation_config_v3',
+  WISHES: 'wedding_invitation_wishes_v3',
 };
 
 export default function App() {

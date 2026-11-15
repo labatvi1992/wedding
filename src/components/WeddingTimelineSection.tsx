@@ -15,31 +15,24 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
   const timelineEvents = [
     {
       num: 1,
-      time: '08:00',
-      title: 'Lễ Vu Quy',
-      subtitle: 'Tư gia nhà gái',
+      time: '10:30',
+      title: 'Lễ Thành Hôn',
+      subtitle: 'Tư gia nhà trai',
       align: 'left' as const,
     },
     {
       num: 2,
-      time: '10:30',
-      title: 'Lễ Thành Hôn',
-      subtitle: 'Tư gia nhà trai',
-      align: 'right' as const,
-    },
-    {
-      num: 3,
       time: '18:00',
       title: 'Tiệc Cưới',
       subtitle: 'Trung tâm tiệc cưới',
-      align: 'left' as const,
+      align: 'right' as const,
     },
   ];
 
   return (
     <section id="section-timeline" className="w-full bg-white text-stone-900 pt-10 pb-0 select-none">
       <div className="px-4 sm:px-8 max-w-md mx-auto">
-        {/* Section Heading: "Timeline" */}
+        {/* Section Heading: "Thời gian" */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -48,7 +41,7 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
           className="text-center mb-8"
         >
           <h2 className="font-serif-editorial text-[40px] sm:text-[46px] text-stone-900 font-light tracking-tight">
-            Timeline
+            Thời gian
           </h2>
         </motion.div>
 
