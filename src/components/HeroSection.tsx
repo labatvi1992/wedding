@@ -20,7 +20,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, guestName }) =
           transition={{ duration: 1.2, ease: 'easeOut' }}
           src={DEMO_IMAGES.heroCouple}
           alt={`${config.brideName} & ${config.groomName}`}
-          className="w-full h-full object-cover object-center"
+          className="w-full h-full object-fill object-center"
         />
 
         {/* Soft top-left & bottom gradient overlays for script legibility */}

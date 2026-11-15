@@ -1,6 +1,8 @@
 {
-  "name": "Thiệp Cưới Online - Thanh Huy & Phương Thúy",
+  "name": "Thiệp Cưới Online - Long Vi & Mỹ Quỳnh",
   "description": "Ứng dụng thiệp cưới online phong cách CineLove Feed với quản lý khách mời và xác nhận tham dự qua Zalo.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

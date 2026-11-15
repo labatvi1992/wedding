@@ -275,11 +275,10 @@ export const PhotoGallerySection: React.FC = () => {
         <div className="pt-3 flex items-center justify-center gap-2">
           <button
             onClick={() => setIs3DMode(!is3DMode)}
-            className={`px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-medium flex items-center gap-1.5 border transition-all cursor-pointer ${
-              is3DMode
+            className={`px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-medium flex items-center gap-1.5 border transition-all cursor-pointer ${is3DMode
                 ? 'bg-amber-50 border-amber-400 text-amber-900 shadow-sm'
                 : 'bg-white border-stone-300 text-stone-600 hover:text-stone-900'
-            }`}
+              }`}
             title="Bật/Tắt chế độ xem 3D Coverflow"
           >
             <Box className={`w-3.5 h-3.5 ${is3DMode ? 'text-amber-700 animate-pulse' : 'text-stone-400'}`} />
@@ -291,7 +290,7 @@ export const PhotoGallerySection: React.FC = () => {
       {/* Glide.js 3D Carousel Stage */}
       <div className="max-w-5xl mx-auto relative px-2 sm:px-6 glide-3d-stage">
         <div ref={sliderRef} className="glide">
-          
+
           {/* Glide Track with generous vertical space for 3D tilting and shadows */}
           <div className="glide__track py-8 sm:py-10 glide-3d-track" data-glide-el="track">
             <ul className="glide__slides flex">
@@ -310,9 +309,8 @@ export const PhotoGallerySection: React.FC = () => {
                     <img
                       src={img.url}
                       alt={img.caption}
-                      className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ${
-                        img.url.includes('Screenshot') ? 'scale-[1.65] translate-y-[-7%]' : ''
-                      }`}
+                      className={`w-full h-full object-fill group-hover:scale-105 transition-transform duration-700 ${img.url.includes('Screenshot') ? 'scale-[1.65] translate-y-[-7%]' : ''
+                        }`}
                       style={img.url.includes('Screenshot') ? { objectPosition: 'center 40%' } : undefined}
                       loading="lazy"
                     />
@@ -324,7 +322,7 @@ export const PhotoGallerySection: React.FC = () => {
                         <span>Nổi Bật</span>
                       </div>
                     )}
-                    
+
                     {/* Gradient Overlay & Caption */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-85 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4 text-left">
                       <span className="text-[10px] sm:text-xs text-amber-300 font-medium uppercase tracking-wider">
@@ -416,11 +414,10 @@ export const PhotoGallerySection: React.FC = () => {
               <img
                 src={WEDDING_GALLERY_IMAGES[selectedIdx].url}
                 alt={WEDDING_GALLERY_IMAGES[selectedIdx].caption}
-                className={`max-w-full max-h-[72vh] ${
-                  WEDDING_GALLERY_IMAGES[selectedIdx].url.includes('Screenshot')
-                    ? 'object-cover aspect-[4/5] scale-[1.35] translate-y-[-5%]'
+                className={`max-w-full max-h-[72vh] ${WEDDING_GALLERY_IMAGES[selectedIdx].url.includes('Screenshot')
+                    ? 'object-fill aspect-[4/5] scale-[1.35] translate-y-[-5%]'
                     : 'object-contain'
-                }`}
+                  }`}
               />
             </div>
             <p className="text-sm sm:text-base font-serif text-rose-200 mt-4 text-center px-4">

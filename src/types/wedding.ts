@@ -44,12 +44,12 @@ export interface WeddingConfig {
     phone: string;
     zaloPhone: string;
   };
-  weddingDate: string; // '2027-10-22'
-  weddingTime: string; // '09:00'
-  calendarHeartDay?: number; // 26
-  ceremonyDay?: number; // 22
-  ceremonyMonth?: string; // 'THÁNG 10'
-  ceremonyYear?: string; // 'NĂM 2027'
+  weddingDate: string; // '2026-12-20'
+  weddingTime: string; // '11:00'
+  calendarHeartDay?: number; // 20
+  ceremonyDay?: number; // 20
+  ceremonyMonth?: string; // 'THÁNG 12'
+  ceremonyYear?: string; // 'NĂM 2026'
   lunarDate?: string; // '(Tức ngày 09 tháng 08 năm Đinh Mùi)'
   venueName: string;
   venueHall: string;

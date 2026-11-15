@@ -148,7 +148,7 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
         <img
           src={DEMO_IMAGES.coupleCelebration}
           alt={`${config.brideName} & ${config.groomName} celebration`}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-fill"
         />
       </motion.div>
     </section>

@@ -76,7 +76,7 @@ test('generateZaloRSVPMessage generates accurate message for attending guests', 
   });
 
   assert.ok(msg.includes('Nguyễn Văn An'));
-  assert.ok(msg.includes('THANH HUY & PHƯƠNG THÚY'));
+  assert.ok(msg.includes('Long Vi & Mỹ Quỳnh'));
   assert.ok(msg.includes('CHẮC CHẮN SẼ THAM DỰ'));
   assert.ok(msg.includes('2 người'));
   assert.ok(msg.includes('Chúc hai bạn trăm năm hạnh phúc!'));

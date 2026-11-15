@@ -135,7 +135,7 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
         <img
           src={DEMO_IMAGES.coupleForever}
           alt={`${config.brideName} & ${config.groomName} forever`}
-          className="w-full h-full object-cover object-center"
+          className="w-full h-full object-fill object-center"
         />
 
         {/* Delicate white handwritten "forever" signature on the right side matching video (0:46-0:50) */}

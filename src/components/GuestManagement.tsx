@@ -241,7 +241,7 @@ export const GuestManagement: React.FC<GuestManagementProps> = ({
             <h1 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               <span>Quản Lý Khách Mời & Google Sheet</span>
               <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-rose-950 border border-rose-800 text-[10px] text-rose-300">
-                Thanh Huy & Phương Thúy
+                Long Vi & Mỹ Quỳnh
               </span>
             </h1>
           </div>

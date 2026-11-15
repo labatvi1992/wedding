@@ -42,7 +42,7 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
             <span className="block pl-1">day</span>
           </div>
           <div className="font-serif-editorial text-[30px] sm:text-[34px] text-stone-800 tracking-wide pt-1 pr-2">
-            Tháng 10
+            Tháng 12
           </div>
         </div>
 
@@ -103,7 +103,7 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
           <img
             src={DEMO_IMAGES.bridePortrait}
             alt={`Cô dâu ${config.brideName}`}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-fill"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/15 to-transparent pointer-events-none" />
 
@@ -165,7 +165,7 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
           <img
             src={DEMO_IMAGES.groomPortrait}
             alt={`Chú rể ${config.groomName}`}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-fill"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
