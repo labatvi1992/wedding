@@ -35,10 +35,10 @@ export const INITIAL_WEDDING_CONFIG: WeddingConfig = {
   venueName: 'Trung tâm tiệc cưới Ngọc Bích Palace',
   venueHall: 'Trung tâm tiệc cưới Ngọc Bích Palace',
   venueAddress: 'Đường Nguyễn Lữ - Xã Bình Dương - Tỉnh Gia Lai',
-  googleMapsUrl: 'https://maps.google.com/?q=Cầu+Bến+Sung+Như+Thanh+Thanh+Hóa',
-  googleMapsEmbedUrl: 'https://maps.google.com/maps?q=C%E1%BA%A7u%20B%E1%BA%BFn%20Sung,%20Nh%C6%B0%20Thanh,%20Thanh%20H%C3%B3a&t=&z=15&ie=UTF8&iwloc=&output=embed',
+  googleMapsUrl: 'https://maps.app.goo.gl/dU7A8hXzqtGbRcP98?g_st=ic',
+  googleMapsEmbedUrl: 'https://maps.google.com/maps?q=73RP%2BHQG%20Nh%C3%A0%20h%C3%A0ng%20ti%E1%BB%87c%20c%C6%B0%E1%BB%9Bi%20Ng%E1%BB%8Dc%20B%C3%ADch%20Palace,%20B%C3%ACnh%20D%C6%B0%C6%A1ng,%20Gia%20Lai&t=&z=16&ie=UTF8&iwloc=&output=embed',
   googleSheetUrl: 'https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit?usp=sharing',
-  backgroundMusicUrl: '',
+  backgroundMusicUrl: '/assets/aistudio/love-paradise.mp3',
 };
 
 export const INITIAL_GUESTS: Guest[] = [
@@ -53,7 +53,7 @@ export const INITIAL_GUESTS: Guest[] = [
     attendeesCount: 2,
     dietaryPreference: 'standard',
     customSlug: 'tran-quoc-bao',
-    wish: 'Chúc hai bạn Trần Mỹ Quỳnh & Đặng Long Vi trăm năm hạnh phúc, sớm sinh quý tử!',
+    wish: 'Chúc hai bạn Đặng Long Vi & Trần Mỹ Quỳnh trăm năm hạnh phúc, sớm sinh quý tử!',
     giftAmount: 1000000,
     invitedViaZalo: true,
     confirmedAt: '2025-10-15T09:30:00Z',
@@ -190,7 +190,7 @@ export const INITIAL_WISHES: GuestWish[] = [
 export const WEDDING_GALLERY_IMAGES = [
   {
     url: DEMO_IMAGES.heroCouple,
-    caption: 'Mỹ Quỳnh & Long Vi - Ngày Chung Đôi',
+    caption: 'Long Vi & Mỹ Quỳnh - Ngày Chung Đôi',
     category: 'Hình nền',
   },
   {

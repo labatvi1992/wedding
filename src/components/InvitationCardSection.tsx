@@ -11,7 +11,9 @@ interface InvitationCardSectionProps {
 export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ config }) => {
   const mapEmbedUrl =
     config.googleMapsEmbedUrl ||
-    'https://maps.google.com/maps?q=C%E1%BA%A7u%20B%E1%BA%BFn%20Sung,%20Nh%C6%B0%20Thanh,%20Thanh%20H%C3%B3a&t=&z=15&ie=UTF8&iwloc=&output=embed';
+    'https://maps.google.com/maps?q=73RP%2BHQG%20Nh%C3%A0%20h%C3%A0ng%20ti%E1%BB%87c%20c%C6%B0%E1%BB%9Bi%20Ng%E1%BB%8Dc%20B%C3%ADch%20Palace,%20B%C3%ACnh%20D%C6%B0%C6%A1ng,%20Gia%20Lai&t=&z=16&ie=UTF8&iwloc=&output=embed';
+  const mapDirectUrl =
+    config.googleMapsUrl || 'https://maps.app.goo.gl/dU7A8hXzqtGbRcP98?g_st=ic';
 
   return (
     <section id="section-invitation" className="w-full bg-white text-stone-900 pt-4 pb-2 select-none">
@@ -65,7 +67,7 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
           </div>
         </motion.div>
 
-        {/* 2. Large Calligraphy Names: Quỳnh Hương & Minh Anh */}
+        {/* 2. Large Calligraphy Names: Đặng Long Vi & Trần Mỹ Quỳnh */}
         <motion.div
           initial={{ opacity: 0, scale: 0.94 }}
           whileInView={{ opacity: 1, scale: 1 }}
@@ -74,13 +76,13 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
           className="space-y-1 my-6"
         >
           <h2 className="font-calligraphy text-[48px] sm:text-[58px] text-stone-900 leading-tight">
-            {config.brideName}
+            {config.groomName}
           </h2>
           <span className="block font-calligraphy text-[38px] sm:text-[44px] text-stone-800 leading-none py-1">
             &amp;
           </span>
           <h2 className="font-calligraphy text-[48px] sm:text-[58px] text-stone-900 leading-tight">
-            {config.groomName}
+            {config.brideName}
           </h2>
         </motion.div>
 
@@ -122,18 +124,18 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
             {config.lunarDate || '(Tức ngày 09 tháng 08 năm Đinh Mùi)'}
           </p>
 
-          <p className="font-serif-editorial text-lg sm:text-xl text-stone-800 pt-3 pb-2">
+          <p id="section-map" className="font-serif-editorial text-lg sm:text-xl text-stone-800 pt-3 pb-2 scroll-mt-16">
             Tại {config.venueName}
           </p>
         </motion.div>
 
-        {/* 4. Interactive Embedded Google Map matching video (0:34 - 0:37) */}
+        {/* 4. Interactive Embedded Google Map */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.25 }}
           transition={{ duration: 0.75 }}
-          className="mt-4 mb-6 rounded-xl overflow-hidden border border-stone-200 shadow-sm bg-stone-100 h-56 sm:h-64 w-full relative"
+          className="mt-4 mb-3 rounded-xl overflow-hidden border border-stone-200 shadow-sm bg-stone-100 h-56 sm:h-64 w-full relative"
         >
           <iframe
             title={`Bản đồ ${config.venueName}`}
@@ -143,6 +145,17 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
             referrerPolicy="no-referrer-when-downgrade"
           />
         </motion.div>
+
+        <div className="mb-6">
+          <a
+            href={mapDirectUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-sans-clean font-medium text-[#721319] hover:underline"
+          >
+            <span>Xem chỉ đường trên Google Maps</span>
+          </a>
+        </div>
       </div>
 
       {/* 5. Full-Width Mid-Page Studio Celebration Photo (Native 2:3 ratio) */}
@@ -155,7 +168,7 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
       >
         <img
           src={DEMO_IMAGES.coupleCelebration}
-          alt={`${config.brideName} & ${config.groomName} celebration`}
+          alt={`${config.groomName} & ${config.brideName} celebration`}
           className="w-full h-full object-cover object-center"
         />
       </motion.div>

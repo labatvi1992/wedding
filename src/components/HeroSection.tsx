@@ -19,7 +19,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, guestName }) =
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1.2, ease: 'easeOut' }}
           src={DEMO_IMAGES.heroCouple}
-          alt={`${config.brideName} & ${config.groomName}`}
+          alt={`${config.groomName} & ${config.brideName}`}
           className="w-full h-full object-cover object-center"
         />
 
@@ -43,7 +43,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, guestName }) =
           )}
         </motion.div>
 
-        {/* Bottom Script Names: Quỳnh Hương & Minh Anh */}
+        {/* Bottom Script Names: Đặng Long Vi & Trần Mỹ Quỳnh */}
         <div className="absolute bottom-3 sm:bottom-5 inset-x-0 px-6 sm:px-10 z-10 pointer-events-none">
           <motion.div
             initial={{ opacity: 0, x: -24, rotate: -7 }}
@@ -52,7 +52,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, guestName }) =
             className="text-left"
           >
             <h1 className="font-calligraphy text-[46px] sm:text-[56px] text-stone-900 leading-none drop-shadow-[0_2px_6px_rgba(255,255,255,0.95)]">
-              {config.brideName}
+              {config.groomName}
             </h1>
           </motion.div>
 
@@ -74,7 +74,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config, guestName }) =
             className="text-center pl-14 sm:pl-20 -mt-1"
           >
             <span className="block font-calligraphy text-[46px] sm:text-[56px] text-stone-900 leading-none drop-shadow-[0_2px_6px_rgba(255,255,255,0.95)]">
-              {config.groomName}
+              {config.brideName}
             </span>
           </motion.div>
         </div>

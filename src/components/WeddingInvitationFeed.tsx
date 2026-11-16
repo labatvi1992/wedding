@@ -195,7 +195,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
     onAddWish(newWish);
     setQuickWishText('');
     handleHeartReaction();
-    showToast(`Đã gửi lời chúc hạnh phúc tới ${config.brideName} & ${config.groomName}!`);
+    showToast(`Đã gửi lời chúc hạnh phúc tới ${config.groomName} & ${config.brideName}!`);
   };
 
   const handleRsvpSubmit = async (e: React.FormEvent) => {
@@ -243,8 +243,8 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
     if (navigator.share) {
       navigator
         .share({
-          title: `Thiệp Cưới: ${config.brideName} & ${config.groomName}`,
-          text: `Trân trọng kính mời bạn tham dự Lễ Thành Hôn của ${config.brideName} & ${config.groomName}.`,
+          title: `Thiệp Cưới: ${config.groomName} & ${config.brideName}`,
+          text: `Trân trọng kính mời bạn tham dự Lễ Thành Hôn của ${config.groomName} & ${config.brideName}.`,
           url: window.location.href,
         })
         .catch(() => {});
@@ -326,92 +326,6 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
           </AnimatePresence>
         </div>
 
-        {/* Quick Menu Popover above the Hamburger button */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setIsMenuOpen(false)}
-                className="fixed inset-0 bg-black/25 backdrop-blur-[1px] z-40"
-              />
-              <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.92 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.92 }}
-                transition={{ duration: 0.2 }}
-                className="fixed bottom-16 right-3 sm:right-[calc(50%-218px)] z-50 w-60 rounded-2xl bg-white shadow-2xl border border-stone-200/90 p-2 text-stone-800 space-y-1"
-              >
-                <div className="px-3 py-1.5 border-b border-stone-100 flex items-center justify-between">
-                  <span className="font-serif-editorial font-semibold text-sm text-[#721319]">
-                    {config.brideName} &amp; {config.groomName}
-                  </span>
-                  <button
-                    onClick={() => setIsMenuOpen(false)}
-                    className="p-1 text-stone-400 hover:text-stone-700 cursor-pointer"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    setActiveSheet('rsvp');
-                  }}
-                  className="w-full px-3 py-2 rounded-xl hover:bg-rose-50 text-left text-xs font-medium flex items-center gap-2.5 text-[#721319] cursor-pointer"
-                >
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>Xác nhận tham dự</span>
-                </button>
-
-                <button
-                  onClick={() => scrollToSection('section-calendar')}
-                  className="w-full px-3 py-2 rounded-xl hover:bg-stone-100 text-left text-xs font-medium flex items-center gap-2.5 text-stone-700 cursor-pointer"
-                >
-                  <Calendar className="w-4 h-4 text-stone-500 shrink-0" />
-                  <span>Lịch cưới &amp; Đếm ngược</span>
-                </button>
-
-                <button
-                  onClick={() => scrollToSection('section-invitation')}
-                  className="w-full px-3 py-2 rounded-xl hover:bg-stone-100 text-left text-xs font-medium flex items-center gap-2.5 text-stone-700 cursor-pointer"
-                >
-                  <MapPin className="w-4 h-4 text-stone-500 shrink-0" />
-                  <span>Địa điểm &amp; Bản đồ tiệc cưới</span>
-                </button>
-
-                <button
-                  onClick={handleShare}
-                  className="w-full px-3 py-2 rounded-xl hover:bg-stone-100 text-left text-xs font-medium flex items-center gap-2.5 text-stone-700 cursor-pointer"
-                >
-                  {copiedShare ? (
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  ) : (
-                    <Share2 className="w-4 h-4 text-stone-500 shrink-0" />
-                  )}
-                  <span>Chia sẻ thiệp cưới</span>
-                </button>
-
-                <div className="pt-1 border-t border-stone-100">
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      onOpenManagement();
-                    }}
-                    className="w-full px-3 py-2 rounded-xl hover:bg-stone-100 text-left text-xs font-medium flex items-center gap-2.5 text-stone-600 cursor-pointer"
-                  >
-                    <Users className="w-4 h-4 text-stone-500 shrink-0" />
-                    <span>Quản lý khách mời &amp; Bảng tính</span>
-                  </button>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-
         {/* Fixed Bottom Bar */}
         <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[460px] z-40 px-3 py-2 bg-gradient-to-t from-white/95 via-white/85 to-transparent backdrop-blur-[2px]">
           <div className="flex items-center gap-2">
@@ -434,30 +348,22 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
               type="button"
               whileTap={{ scale: 0.97 }}
               onClick={() => setActiveSheet('rsvp')}
-              className="flex-1 h-9 px-4 rounded-full bg-[#721319] hover:bg-[#5e1015] text-white text-xs sm:text-[13px] font-sans-clean font-semibold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-colors"
+              className="flex-1 h-9 px-3.5 rounded-full bg-[#721319] hover:bg-[#5e1015] text-white text-xs sm:text-[13px] font-sans-clean font-semibold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-colors"
             >
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>Xác nhận tham dự</span>
             </motion.button>
 
-            {/* 3. Heart Reaction Circle Button */}
+            {/* 3. "Địa điểm nhà hàng" Button (Replaces Menu Button) */}
             <motion.button
-              whileTap={{ scale: 0.88 }}
-              onClick={handleHeartReaction}
-              aria-label="Thả tim chúc mừng"
-              className="w-9 h-9 rounded-full bg-stone-400/80 hover:bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-xs cursor-pointer transition-colors"
+              type="button"
+              whileTap={{ scale: 0.96 }}
+              onClick={() => scrollToSection('section-map')}
+              aria-label="Địa điểm nhà hàng"
+              className="h-9 px-3.5 rounded-full bg-stone-700/90 hover:bg-stone-800 text-white text-xs sm:text-[13px] font-sans-clean font-medium flex items-center justify-center gap-1.5 shrink-0 shadow-sm cursor-pointer transition-colors"
             >
-              <Heart className="w-4 h-4 stroke-[2.2]" />
-            </motion.button>
-
-            {/* 4. Dark Red Hamburger Menu Circle Button */}
-            <motion.button
-              whileTap={{ scale: 0.92 }}
-              onClick={() => setIsMenuOpen((prev) => !prev)}
-              aria-label="Mở menu tiện ích"
-              className="w-9 h-9 rounded-full bg-[#801b22] hover:bg-[#641217] text-white flex items-center justify-center shrink-0 shadow-sm cursor-pointer transition-colors"
-            >
-              <Menu className="w-4 h-4 stroke-[2.4]" />
+              <MapPin className="w-3.5 h-3.5 shrink-0" />
+              <span>Địa điểm nhà hàng</span>
             </motion.button>
           </div>
         </div>
@@ -507,7 +413,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                     </h3>
                     <p className="text-xs sm:text-sm text-stone-600 max-w-xs mx-auto leading-relaxed">
                       Phản hồi của bạn đã được lưu và đồng bộ vào danh sách của{' '}
-                      <strong>{config.brideName} &amp; {config.groomName}</strong>.
+                      <strong>{config.groomName} &amp; {config.brideName}</strong>.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
                       {config.googleSheetUrl && (

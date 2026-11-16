@@ -7,12 +7,16 @@ interface AudioDiscButtonProps {
 }
 
 export const AudioDiscButton: React.FC<AudioDiscButtonProps> = ({ className = '' }) => {
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isPlaying, setIsPlaying] = useState<boolean>(() => weddingAudioPlayer.getIsPlaying());
 
   useEffect(() => {
-    weddingAudioPlayer.registerStateListener((playing) => {
+    const unsubscribe = weddingAudioPlayer.registerStateListener((playing) => {
       setIsPlaying(playing);
     });
+    weddingAudioPlayer.startAutoPlay();
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const handleToggle = () => {
