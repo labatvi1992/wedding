@@ -190,7 +190,7 @@ export const INITIAL_WISHES: GuestWish[] = [
 export const WEDDING_GALLERY_IMAGES = [
   {
     url: DEMO_IMAGES.heroCouple,
-    caption: 'Mỹ Quỳnh & Long Vi - Save The Date',
+    caption: 'Mỹ Quỳnh & Long Vi - Ngày Chung Đôi',
     category: 'Hình nền',
   },
   {
@@ -210,7 +210,7 @@ export const WEDDING_GALLERY_IMAGES = [
   },
   {
     url: DEMO_IMAGES.coupleForever,
-    caption: 'Đời đẩy hai đứa về chung một lối - Forever',
+    caption: 'Đời đẩy hai đứa về chung một lối - Mãi bên nhau',
     category: 'Khoảnh khắc',
   },
 ];

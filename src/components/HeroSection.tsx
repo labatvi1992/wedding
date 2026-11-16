@@ -12,29 +12,29 @@ interface HeroSectionProps {
 export const HeroSection: React.FC<HeroSectionProps> = ({ config, guestName }) => {
   return (
     <section id="section-hero" className="relative w-full overflow-hidden bg-white select-none">
-      {/* Main Studio Portrait Container */}
-      <div className="relative w-full aspect-[3/4.2] sm:aspect-[3/4] overflow-hidden bg-stone-100">
+      {/* Main Studio Portrait Container (Native 2:3 DSLR ratio: 4024x6048) */}
+      <div className="relative w-full aspect-[2/3] overflow-hidden bg-stone-100">
         <motion.img
-          initial={{ scale: 1.08, opacity: 0 }}
+          initial={{ scale: 1.05, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1.2, ease: 'easeOut' }}
           src={DEMO_IMAGES.heroCouple}
           alt={`${config.brideName} & ${config.groomName}`}
-          className="w-full h-full object-fill object-center"
+          className="w-full h-full object-cover object-center"
         />
 
         {/* Soft top-left & bottom gradient overlays for script legibility */}
         <div className="absolute inset-0 bg-gradient-to-b from-white/75 via-transparent to-white/95 pointer-events-none" />
 
-        {/* Top-left "Save The Date" Script Title */}
+        {/* Top-left "Ngày Chung Đôi" Script Title */}
         <motion.div
           initial={{ opacity: 0, y: -18, rotate: -6 }}
           animate={{ opacity: 1, y: 0, rotate: -6 }}
           transition={{ duration: 0.9, delay: 0.25, ease: 'easeOut' }}
           className="absolute top-6 sm:top-8 left-5 sm:left-8 z-10 pointer-events-none"
         >
-          <h2 className="font-calligraphy text-[44px] sm:text-[54px] text-stone-900 leading-none tracking-normal drop-shadow-[0_2px_8px_rgba(255,255,255,0.95)]">
-            Save The Date
+          <h2 className="font-calligraphy text-[42px] sm:text-[52px] text-stone-900 leading-none tracking-normal drop-shadow-[0_2px_8px_rgba(255,255,255,0.95)]">
+            Ngày Chung Đôi
           </h2>
           {guestName && (
             <p className="font-serif-editorial italic text-sm sm:text-base text-stone-800 mt-1 pl-2 drop-shadow-[0_1px_4px_rgba(255,255,255,0.9)]">

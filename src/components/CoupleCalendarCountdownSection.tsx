@@ -20,14 +20,16 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
     return () => clearInterval(timer);
   }, [config.weddingDate]);
 
-  const highlightDay = config.calendarHeartDay || 26;
-  const daysInOctober = Array.from({ length: 31 }, (_, i) => i + 1);
-  // 5 leading empty cells so 1 & 2 sit in the last two columns of row 1
-  const leadingEmptyCells = Array.from({ length: 5 }, (_, i) => i);
+  const highlightDay = config.calendarHeartDay || 20;
+  const daysInDecember = Array.from({ length: 31 }, (_, i) => i + 1);
+  // December 2026 starts on Tuesday (Thứ 3), so 1 leading empty cell for Monday (Thứ 2)
+  // This places 6, 13, 20, 27 in the 7th column (Chủ Nhật)
+  const leadingEmptyCells = Array.from({ length: 1 }, (_, i) => i);
+  const weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
   return (
     <section id="section-calendar" className="w-full bg-white px-5 sm:px-8 pt-6 pb-8 overflow-hidden select-none">
-      {/* 1. October Calendar */}
+      {/* 1. December 2026 Calendar */}
       <motion.div
         initial={{ opacity: 0, y: 28 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -35,24 +37,35 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
         transition={{ duration: 0.75, ease: 'easeOut' }}
         className="max-w-md mx-auto mb-10"
       >
-        {/* Header: "Our wedding day" & "Tháng 10" */}
+        {/* Header: "Ngày chung đôi" & "Tháng 12" */}
         <div className="flex items-start justify-between mb-3 px-2">
           <div className="font-calligraphy text-[31px] sm:text-[36px] text-stone-800 leading-[1.05]">
-            <span className="block">Our wedding</span>
-            <span className="block pl-1">day</span>
+            <span className="block">Ngày chung</span>
+            <span className="block pl-2">đôi</span>
           </div>
           <div className="font-serif-editorial text-[30px] sm:text-[34px] text-stone-800 tracking-wide pt-1 pr-2">
             Tháng 12
           </div>
         </div>
 
-        {/* 7-Column Calendar Grid */}
-        <div className="grid grid-cols-7 gap-y-3.5 sm:gap-y-4 text-center items-center">
+        {/* 7-Column Calendar Grid (T2 -> CN) */}
+        <div className="grid grid-cols-7 gap-y-3 sm:gap-y-3.5 text-center items-center">
+          {weekDays.map((wd) => (
+            <div
+              key={wd}
+              className={`text-xs sm:text-[13px] font-sans-clean font-semibold tracking-wider pb-1 border-b border-stone-200/80 ${
+                wd === 'CN' ? 'text-[#721319]' : 'text-stone-500'
+              }`}
+            >
+              {wd}
+            </div>
+          ))}
+
           {leadingEmptyCells.map((emptyIdx) => (
             <div key={`empty-${emptyIdx}`} className="h-9" />
           ))}
 
-          {daysInOctober.map((day) => {
+          {daysInDecember.map((day) => {
             const isHeartDay = day === highlightDay;
             return (
               <div
@@ -98,12 +111,12 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.25 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="col-span-8 relative rounded-[26px] overflow-hidden shadow-[0_12px_32px_rgba(0,0,0,0.16)] bg-stone-100 aspect-[3/4.1]"
+          className="col-span-8 relative rounded-[26px] overflow-hidden shadow-[0_12px_32px_rgba(0,0,0,0.16)] bg-stone-100 aspect-[2/3]"
         >
           <img
             src={DEMO_IMAGES.bridePortrait}
             alt={`Cô dâu ${config.brideName}`}
-            className="w-full h-full object-fill"
+            className="w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/15 to-transparent pointer-events-none" />
 
@@ -126,8 +139,8 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
           transition={{ duration: 0.8, delay: 0.15, ease: 'easeOut' }}
           className="col-span-4 flex flex-col items-center justify-center space-y-3 sm:space-y-3.5"
         >
-          <h4 className="font-serif-editorial text-2xl sm:text-[28px] text-[#5e1418] tracking-tight mb-1">
-            Countdown
+          <h4 className="font-serif-editorial text-xl sm:text-2xl text-[#5e1418] tracking-tight mb-1 font-medium">
+            Đếm Ngược
           </h4>
 
           {[
@@ -160,12 +173,12 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
           whileInView={{ opacity: 1, x: 0, y: 0 }}
           viewport={{ once: true, amount: 0.25 }}
           transition={{ duration: 0.85, ease: 'easeOut' }}
-          className="col-span-8 relative rounded-[26px] overflow-hidden shadow-[0_14px_35px_rgba(0,0,0,0.2)] bg-stone-900 aspect-[3/4.1]"
+          className="col-span-8 relative rounded-[26px] overflow-hidden shadow-[0_14px_35px_rgba(0,0,0,0.2)] bg-stone-900 aspect-[2/3]"
         >
           <img
             src={DEMO_IMAGES.groomPortrait}
             alt={`Chú rể ${config.groomName}`}
-            className="w-full h-full object-fill"
+            className="w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 

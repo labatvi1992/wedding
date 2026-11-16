@@ -304,14 +304,12 @@ export const PhotoGallerySection: React.FC = () => {
                   <div
                     onMouseMove={handleMouseMove}
                     onMouseLeave={handleMouseLeave}
-                    className="glide-3d-card-wrapper group relative aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-stone-200/90 cursor-pointer shadow-lg transition-all duration-300"
+                    className="glide-3d-card-wrapper group relative aspect-[2/3] rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-stone-200/90 cursor-pointer shadow-lg transition-all duration-300"
                   >
                     <img
                       src={img.url}
                       alt={img.caption}
-                      className={`w-full h-full object-fill group-hover:scale-105 transition-transform duration-700 ${img.url.includes('Screenshot') ? 'scale-[1.65] translate-y-[-7%]' : ''
-                        }`}
-                      style={img.url.includes('Screenshot') ? { objectPosition: 'center 40%' } : undefined}
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                       loading="lazy"
                     />
 

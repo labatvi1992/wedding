@@ -79,8 +79,8 @@ export const LoveStorySection: React.FC = () => {
           </div>
 
           <div className="pl-5 sm:pl-6 text-left space-y-2.5">
-            <h2 className="font-serif-editorial text-2xl sm:text-[28px] text-stone-800 tracking-wide uppercase font-normal">
-              OUR LOVE STORY
+            <h2 className="font-serif-editorial text-xl sm:text-[25px] text-stone-800 tracking-wide uppercase font-normal">
+              CHUYỆN TÌNH CHÚNG MÌNH
             </h2>
             <p className="font-serif-editorial text-[15px] sm:text-[16.5px] text-stone-700 leading-[1.6] font-normal">
               Bọn mình bắt đầu từ những tin nhắn nửa đêm và mấy quán ăn vỉa hè. Rồi tự lúc nào không hay, hai người xa lạ đã thuộc thói quen của nhau, biết ai thích cà phê đắng, ai sợ mưa. Đến hôm nay thì thấy rõ: chuyện lớn nhất đời người hóa ra chỉ là chọn được người ngồi cùng bàn ăn mỗi tối.

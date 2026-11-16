@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { WeddingConfig } from '../types/wedding';
-import { DEMO_IMAGES } from '../data/initialData';
+import { DEMO_IMAGES, LOVE_STORY_STEPS } from '../data/initialData';
 
 interface WeddingTimelineSectionProps {
   config: WeddingConfig;
@@ -12,22 +12,13 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
   config,
   onOpenRsvpModal,
 }) => {
-  const timelineEvents = [
-    {
-      num: 1,
-      time: '10:30',
-      title: 'Lễ Thành Hôn',
-      subtitle: 'Tư gia nhà trai',
-      align: 'left' as const,
-    },
-    {
-      num: 2,
-      time: '18:00',
-      title: 'Tiệc Cưới',
-      subtitle: 'Trung tâm tiệc cưới',
-      align: 'right' as const,
-    },
-  ];
+  const timelineEvents = LOVE_STORY_STEPS.map((step, idx) => ({
+    num: idx + 1,
+    time: step.year,
+    title: step.title,
+    subtitle: step.desc,
+    align: idx % 2 === 0 ? ('left' as const) : ('right' as const),
+  }));
 
   return (
     <section id="section-timeline" className="w-full bg-white text-stone-900 pt-10 pb-0 select-none">
@@ -124,21 +115,21 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
         </motion.div>
       </div>
 
-      {/* Full-Width Closing "forever" Studio Portrait with Red Curtain (0:46 - 0:50) */}
+      {/* Full-Width Closing "forever" Portrait (Native 2:3 ratio) */}
       <motion.div
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 1 }}
-        className="relative w-full aspect-[3/4.2] overflow-hidden bg-stone-100"
+        className="relative w-full aspect-[2/3] overflow-hidden bg-stone-100"
       >
         <img
           src={DEMO_IMAGES.coupleForever}
           alt={`${config.brideName} & ${config.groomName} forever`}
-          className="w-full h-full object-fill object-center"
+          className="w-full h-full object-cover object-center"
         />
 
-        {/* Delicate white handwritten "forever" signature on the right side matching video (0:46-0:50) */}
+        {/* Delicate white handwritten "mãi bên nhau" signature on the right side */}
         <motion.div
           initial={{ opacity: 0, x: 18 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -146,8 +137,8 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
           transition={{ duration: 0.9, delay: 0.35 }}
           className="absolute top-[28%] right-3 sm:right-5 pointer-events-none"
         >
-          <span className="font-calligraphy text-[38px] sm:text-[46px] text-white/95 drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)] tracking-wide">
-            forever
+          <span className="font-calligraphy text-[34px] sm:text-[42px] text-white/95 drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)] tracking-wide">
+            mãi bên nhau
           </span>
         </motion.div>
       </motion.div>

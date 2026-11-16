@@ -68,16 +68,83 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
     setTimeout(() => setToastMsg(null), 2800);
   };
 
-  // Scroll listener to flip down arrow to up arrow at bottom
+  // Trigger balanced, romantic firework burst when scrolling across sections
+  const triggerScrollFirework = React.useCallback((isBottomFinale = false) => {
+    const weddingColors = ['#721319', '#e11d48', '#f43f5e', '#fbbf24', '#fda4af'];
+    try {
+      if (isBottomFinale) {
+        // Double-side celebratory firework burst at the closing portrait
+        confetti({
+          particleCount: 24,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0.18, y: 0.72 },
+          colors: weddingColors,
+          ticks: 180,
+          gravity: 0.8,
+          scalar: 0.9,
+        });
+        confetti({
+          particleCount: 24,
+          angle: 120,
+          spread: 55,
+          origin: { x: 0.82, y: 0.72 },
+          colors: weddingColors,
+          ticks: 180,
+          gravity: 0.8,
+          scalar: 0.9,
+        });
+      } else {
+        // Gentle alternating firework burst in the upper-middle viewport
+        const randomX = 0.28 + Math.random() * 0.44;
+        const randomY = 0.22 + Math.random() * 0.28;
+        confetti({
+          particleCount: 18,
+          spread: 68,
+          startVelocity: 24,
+          origin: { x: randomX, y: randomY },
+          colors: weddingColors,
+          ticks: 150,
+          gravity: 0.75,
+          scalar: 0.85,
+        });
+      }
+    } catch {
+      // Ignore if canvas-confetti fails in restricted environments
+    }
+  }, []);
+
+  // Scroll listener to flip down arrow to up arrow at bottom & fire scroll fireworks
   React.useEffect(() => {
+    let lastFireworkScrollY = window.scrollY;
+    let lastFireworkTime = 0;
+    let wasAtBottom = false;
+
     const handleScroll = () => {
+      const currentY = window.scrollY;
       const scrolledToBottom =
-        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 220;
+        window.innerHeight + currentY >= document.documentElement.scrollHeight - 220;
       setAtBottom(scrolledToBottom);
+
+      const now = Date.now();
+      const scrollDelta = Math.abs(currentY - lastFireworkScrollY);
+
+      if (scrolledToBottom && !wasAtBottom && now - lastFireworkTime > 700) {
+        lastFireworkScrollY = currentY;
+        lastFireworkTime = now;
+        triggerScrollFirework(true);
+      } else if (scrollDelta >= 360 && now - lastFireworkTime >= 950) {
+        lastFireworkScrollY = currentY;
+        lastFireworkTime = now;
+        triggerScrollFirework(false);
+      }
+
+      wasAtBottom = scrolledToBottom;
     };
+
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [triggerScrollFirework]);
 
   // Scroll next section or back to top
   const handleScrollAction = () => {
@@ -297,21 +364,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                   className="w-full px-3 py-2 rounded-xl hover:bg-rose-50 text-left text-xs font-medium flex items-center gap-2.5 text-[#721319] cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>Xác nhận tham dự (RSVP)</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    setActiveSheet('wishes');
-                  }}
-                  className="w-full px-3 py-2 rounded-xl hover:bg-stone-100 text-left text-xs font-medium flex items-center justify-between text-stone-700 cursor-pointer"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
-                    <span>Xem lời chúc ({wishes.length})</span>
-                  </div>
-                  <span className="text-[10px] text-stone-400">{heartCount} ♥</span>
+                  <span>Xác nhận tham dự</span>
                 </button>
 
                 <button
@@ -327,7 +380,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                   className="w-full px-3 py-2 rounded-xl hover:bg-stone-100 text-left text-xs font-medium flex items-center gap-2.5 text-stone-700 cursor-pointer"
                 >
                   <MapPin className="w-4 h-4 text-stone-500 shrink-0" />
-                  <span>Địa điểm &amp; Bản đồ Miwedi</span>
+                  <span>Địa điểm &amp; Bản đồ tiệc cưới</span>
                 </button>
 
                 <button
@@ -351,7 +404,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                     className="w-full px-3 py-2 rounded-xl hover:bg-stone-100 text-left text-xs font-medium flex items-center gap-2.5 text-stone-600 cursor-pointer"
                   >
                     <Users className="w-4 h-4 text-stone-500 shrink-0" />
-                    <span>Quản lý khách mời &amp; Google Sheet</span>
+                    <span>Quản lý khách mời &amp; Bảng tính</span>
                   </button>
                 </div>
               </motion.div>
@@ -359,7 +412,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
           )}
         </AnimatePresence>
 
-        {/* Fixed Bottom Bar matching video (0:00 - 0:50) */}
+        {/* Fixed Bottom Bar */}
         <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[460px] z-40 px-3 py-2 bg-gradient-to-t from-white/95 via-white/85 to-transparent backdrop-blur-[2px]">
           <div className="flex items-center gap-2">
             {/* 1. Down/Up Scroll Circle Button */}
@@ -376,34 +429,16 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
               )}
             </motion.button>
 
-            {/* 2. "Gửi lời chúc..." Rounded Input Bar */}
-            <form onSubmit={handleQuickWishSubmit} className="flex-1 relative flex items-center">
-              <input
-                type="text"
-                value={quickWishText}
-                onChange={(e) => setQuickWishText(e.target.value)}
-                placeholder="Gửi lời chúc..."
-                className="w-full h-9 pl-4 pr-9 rounded-full bg-stone-400/75 hover:bg-stone-400/85 focus:bg-stone-500/90 text-white placeholder:text-white/95 text-xs sm:text-[13px] font-sans-clean focus:outline-none transition-colors shadow-xs"
-              />
-              {quickWishText.trim() ? (
-                <button
-                  type="submit"
-                  aria-label="Gửi lời chúc"
-                  className="absolute right-2 p-1 text-white hover:text-amber-200 cursor-pointer"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setActiveSheet('rsvp')}
-                  title="Mở bảng xác nhận tham dự & lời chúc"
-                  className="absolute right-2.5 text-[10px] text-white/85 hover:text-white font-medium cursor-pointer"
-                >
-                  RSVP
-                </button>
-              )}
-            </form>
+            {/* 2. "Xác nhận tham dự" Rounded Button */}
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setActiveSheet('rsvp')}
+              className="flex-1 h-9 px-4 rounded-full bg-[#721319] hover:bg-[#5e1015] text-white text-xs sm:text-[13px] font-sans-clean font-semibold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-colors"
+            >
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>Xác nhận tham dự</span>
+            </motion.button>
 
             {/* 3. Heart Reaction Circle Button */}
             <motion.button
@@ -427,7 +462,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
           </div>
         </div>
 
-        {/* Bottom Sheet Modal for RSVP & Wishes */}
+        {/* Bottom Sheet Modal for Xác Nhận Tham Dự */}
         <AnimatePresence>
           {activeSheet !== 'none' && (
             <div className="fixed inset-0 z-50 flex items-end justify-center">
@@ -446,29 +481,12 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                 transition={{ type: 'spring', damping: 26, stiffness: 260 }}
                 className="relative z-10 w-full max-w-[460px] bg-white rounded-t-3xl shadow-2xl border-t border-stone-200 p-5 sm:p-6 max-h-[85vh] overflow-y-auto"
               >
-                {/* Sheet Tabs Header */}
+                {/* Sheet Header */}
                 <div className="flex items-center justify-between border-b border-stone-200 pb-3 mb-4">
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setActiveSheet('rsvp')}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
-                        activeSheet === 'rsvp'
-                          ? 'bg-[#721319] text-white'
-                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                      }`}
-                    >
-                      Xác Nhận Tham Dự (RSVP)
-                    </button>
-                    <button
-                      onClick={() => setActiveSheet('wishes')}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
-                        activeSheet === 'wishes'
-                          ? 'bg-[#721319] text-white'
-                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                      }`}
-                    >
-                      Lời Chúc ({wishes.length})
-                    </button>
+                    <span className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#721319] text-white">
+                      Xác Nhận Tham Dự
+                    </span>
                   </div>
 
                   <button
@@ -479,176 +497,142 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                   </button>
                 </div>
 
-                {activeSheet === 'rsvp' ? (
-                  rsvpSubmitted ? (
-                    <div className="py-6 text-center space-y-4">
-                      <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-500 text-emerald-600 mx-auto flex items-center justify-center">
-                        <CheckCircle2 className="w-8 h-8" />
-                      </div>
-                      <h3 className="font-serif-editorial text-2xl font-bold text-stone-900">
-                        Cảm Ơn {guestName}!
-                      </h3>
-                      <p className="text-xs sm:text-sm text-stone-600 max-w-xs mx-auto leading-relaxed">
-                        Phản hồi của bạn đã được lưu và đồng bộ vào danh sách Google Sheet của{' '}
-                        <strong>{config.brideName} &amp; {config.groomName}</strong>.
-                      </p>
-                      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
-                        {config.googleSheetUrl && (
-                          <a
-                            href={config.googleSheetUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold flex items-center gap-1.5"
-                          >
-                            <FileSpreadsheet className="w-4 h-4" />
-                            <span>Xem Google Sheet</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )}
-                        <button
-                          onClick={() => setRsvpSubmitted(false)}
-                          className="text-xs text-stone-500 underline py-1.5 cursor-pointer"
-                        >
-                          Chỉnh sửa lại
-                        </button>
-                      </div>
+                {rsvpSubmitted ? (
+                  <div className="py-6 text-center space-y-4">
+                    <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-500 text-emerald-600 mx-auto flex items-center justify-center">
+                      <CheckCircle2 className="w-8 h-8" />
                     </div>
-                  ) : (
-                    <form onSubmit={handleRsvpSubmit} className="space-y-4 text-left">
+                    <h3 className="font-serif-editorial text-2xl font-bold text-stone-900">
+                      Cảm Ơn {guestName}!
+                    </h3>
+                    <p className="text-xs sm:text-sm text-stone-600 max-w-xs mx-auto leading-relaxed">
+                      Phản hồi của bạn đã được lưu và đồng bộ vào danh sách của{' '}
+                      <strong>{config.brideName} &amp; {config.groomName}</strong>.
+                    </p>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
+                      {config.googleSheetUrl && (
+                        <a
+                          href={config.googleSheetUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold flex items-center gap-1.5"
+                        >
+                          <FileSpreadsheet className="w-4 h-4" />
+                          <span>Xem Bảng Danh Sách</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                      <button
+                        onClick={() => setRsvpSubmitted(false)}
+                        className="text-xs text-stone-500 underline py-1.5 cursor-pointer"
+                      >
+                        Chỉnh sửa lại
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleRsvpSubmit} className="space-y-4 text-left">
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                        Họ và tên của bạn *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={guestName}
+                        onChange={(e) => setGuestName(e.target.value)}
+                        placeholder="Nhập tên của bạn..."
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 text-xs sm:text-sm focus:bg-white focus:outline-none focus:border-[#721319]"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-stone-700 mb-1">
-                          Họ và tên của bạn *
+                          Số điện thoại
                         </label>
                         <input
-                          type="text"
-                          required
-                          value={guestName}
-                          onChange={(e) => setGuestName(e.target.value)}
-                          placeholder="Nhập tên của bạn..."
+                          type="tel"
+                          value={guestPhone}
+                          onChange={(e) => setGuestPhone(e.target.value)}
+                          placeholder="Số điện thoại..."
                           className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 text-xs sm:text-sm focus:bg-white focus:outline-none focus:border-[#721319]"
                         />
                       </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
-                            Số điện thoại
-                          </label>
-                          <input
-                            type="tel"
-                            value={guestPhone}
-                            onChange={(e) => setGuestPhone(e.target.value)}
-                            placeholder="Số điện thoại..."
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 text-xs sm:text-sm focus:bg-white focus:outline-none focus:border-[#721319]"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1">
-                            Khách của
-                          </label>
-                          <select
-                            value={guestGroup}
-                            onChange={(e) => setGuestGroup(e.target.value as Guest['group'])}
-                            className="w-full px-3 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 text-xs sm:text-sm focus:outline-none focus:border-[#721319]"
-                          >
-                            <option value="Nhà gái">Khách Nhà Gái</option>
-                            <option value="Nhà trai">Khách Nhà Trai</option>
-                            <option value="Bạn Cô dâu">Bạn Cô Dâu</option>
-                            <option value="Bạn Chú rể">Bạn Chú Rể</option>
-                            <option value="Đồng nghiệp">Đồng Nghiệp</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <button
-                          type="button"
-                          onClick={() => setAttendanceStatus('attending')}
-                          className={`py-2.5 px-3 rounded-xl text-xs font-semibold border cursor-pointer transition-colors ${
-                            attendanceStatus === 'attending'
-                              ? 'bg-[#721319] border-[#721319] text-white'
-                              : 'bg-stone-50 border-stone-200 text-stone-600'
-                          }`}
-                        >
-                          Sẽ tham dự
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setAttendanceStatus('declined')}
-                          className={`py-2.5 px-3 rounded-xl text-xs font-semibold border cursor-pointer transition-colors ${
-                            attendanceStatus === 'declined'
-                              ? 'bg-stone-700 border-stone-700 text-white'
-                              : 'bg-stone-50 border-stone-200 text-stone-600'
-                          }`}
-                        >
-                          Bận không tới được
-                        </button>
-                      </div>
-
-                      {attendanceStatus === 'attending' && (
-                        <div>
-                          <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-                            Số người tham dự
-                          </label>
-                          <div className="flex items-center gap-2">
-                            {[1, 2, 3, 4, 5].map((n) => (
-                              <button
-                                key={n}
-                                type="button"
-                                onClick={() => setAttendeesCount(n)}
-                                className={`w-9 h-9 rounded-xl text-xs font-bold border cursor-pointer ${
-                                  attendeesCount === n
-                                    ? 'bg-[#721319] border-[#721319] text-white'
-                                    : 'bg-stone-50 border-stone-200 text-stone-700'
-                                }`}
-                              >
-                                {n}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
                       <div>
                         <label className="block text-xs font-semibold text-stone-700 mb-1">
-                          Lời chúc gửi cô dâu &amp; chú rể
+                          Khách của
                         </label>
-                        <textarea
-                          rows={2}
-                          value={rsvpWish}
-                          onChange={(e) => setRsvpWish(e.target.value)}
-                          placeholder="Gửi lời chúc tốt đẹp nhất..."
-                          className="w-full px-3.5 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 text-xs sm:text-sm focus:bg-white focus:outline-none focus:border-[#721319]"
-                        />
+                        <select
+                          value={guestGroup}
+                          onChange={(e) => setGuestGroup(e.target.value as Guest['group'])}
+                          className="w-full px-3 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 text-xs sm:text-sm focus:outline-none focus:border-[#721319]"
+                        >
+                          <option value="Nhà gái">Khách Nhà Gái</option>
+                          <option value="Nhà trai">Khách Nhà Trai</option>
+                          <option value="Bạn Cô dâu">Bạn Cô Dâu</option>
+                          <option value="Bạn Chú rể">Bạn Chú Rể</option>
+                          <option value="Đồng nghiệp">Đồng Nghiệp</option>
+                        </select>
                       </div>
+                    </div>
 
+                    <div className="grid grid-cols-2 gap-2.5">
                       <button
-                        type="submit"
-                        className="w-full py-3 rounded-xl bg-[#721319] hover:bg-[#5a0e13] text-white font-semibold text-xs sm:text-sm shadow-md cursor-pointer transition-colors"
+                        type="button"
+                        onClick={() => setAttendanceStatus('attending')}
+                        className={`py-2.5 px-3 rounded-xl text-xs font-semibold border cursor-pointer transition-colors ${
+                          attendanceStatus === 'attending'
+                            ? 'bg-[#721319] border-[#721319] text-white'
+                            : 'bg-stone-50 border-stone-200 text-stone-600'
+                        }`}
                       >
-                        Gửi Xác Nhận Tham Dự
+                        Sẽ tham dự
                       </button>
-                    </form>
-                  )
-                ) : (
-                  <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-                    {wishes.map((w) => (
-                      <div
-                        key={w.id}
-                        className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200/80 text-left space-y-1"
+                      <button
+                        type="button"
+                        onClick={() => setAttendanceStatus('declined')}
+                        className={`py-2.5 px-3 rounded-xl text-xs font-semibold border cursor-pointer transition-colors ${
+                          attendanceStatus === 'declined'
+                            ? 'bg-stone-700 border-stone-700 text-white'
+                            : 'bg-stone-50 border-stone-200 text-stone-600'
+                        }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-xs sm:text-sm text-[#721319]">
-                            {w.author}
-                          </span>
-                          <span className="text-[10px] text-stone-400">{w.createdAt}</span>
+                        Bận không tới được
+                      </button>
+                    </div>
+
+                    {attendanceStatus === 'attending' && (
+                      <div>
+                        <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                          Số người tham dự
+                        </label>
+                        <div className="flex items-center gap-2">
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <button
+                              key={n}
+                              type="button"
+                              onClick={() => setAttendeesCount(n)}
+                              className={`w-9 h-9 rounded-xl text-xs font-bold border cursor-pointer ${
+                                attendeesCount === n
+                                  ? 'bg-[#721319] border-[#721319] text-white'
+                                  : 'bg-stone-50 border-stone-200 text-stone-700'
+                              }`}
+                            >
+                              {n}
+                            </button>
+                          ))}
                         </div>
-                        <p className="text-xs sm:text-sm text-stone-700 leading-relaxed font-serif-editorial">
-                          &ldquo;{w.content}&rdquo;
-                        </p>
                       </div>
-                    ))}
-                  </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      className="w-full py-3 rounded-xl bg-[#721319] hover:bg-[#5a0e13] text-white font-semibold text-xs sm:text-sm shadow-md cursor-pointer transition-colors"
+                    >
+                      Gửi Xác Nhận Tham Dự
+                    </button>
+                  </form>
                 )}
               </motion.div>
             </div>

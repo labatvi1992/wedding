@@ -29,12 +29,16 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
             <h3 className="font-sans-clean font-bold text-lg sm:text-xl text-stone-900 mb-2">
               Nhà Trai
             </h3>
-            <p className="font-serif-editorial text-[16px] sm:text-[18px] text-stone-800 leading-snug">
-              {config.groomFamily.father}
-            </p>
-            <p className="font-serif-editorial text-[16px] sm:text-[18px] text-stone-800 leading-snug">
-              {config.groomFamily.mother}
-            </p>
+            {config.groomFamily.father && (
+              <p className="font-serif-editorial text-[16px] sm:text-[18px] text-stone-800 leading-snug">
+                {config.groomFamily.father}
+              </p>
+            )}
+            {config.groomFamily.mother && (
+              <p className="font-serif-editorial text-[16px] sm:text-[18px] text-stone-800 leading-snug">
+                {config.groomFamily.mother}
+              </p>
+            )}
             <p className="font-serif-editorial text-[15px] sm:text-[17px] text-stone-700 leading-snug">
               {config.groomFamily.address}
             </p>
@@ -45,12 +49,16 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
             <h3 className="font-sans-clean font-bold text-lg sm:text-xl text-stone-900 mb-2">
               Nhà Gái
             </h3>
-            <p className="font-serif-editorial text-[16px] sm:text-[18px] text-stone-800 leading-snug">
-              {config.brideFamily.father}
-            </p>
-            <p className="font-serif-editorial text-[16px] sm:text-[18px] text-stone-800 leading-snug">
-              {config.brideFamily.mother}
-            </p>
+            {config.brideFamily.father && (
+              <p className="font-serif-editorial text-[16px] sm:text-[18px] text-stone-800 leading-snug">
+                {config.brideFamily.father}
+              </p>
+            )}
+            {config.brideFamily.mother && (
+              <p className="font-serif-editorial text-[16px] sm:text-[18px] text-stone-800 leading-snug">
+                {config.brideFamily.mother}
+              </p>
+            )}
             <p className="font-serif-editorial text-[15px] sm:text-[17px] text-stone-700 leading-snug">
               {config.brideFamily.address}
             </p>
@@ -115,7 +123,7 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
           </p>
 
           <p className="font-serif-editorial text-lg sm:text-xl text-stone-800 pt-3 pb-2">
-            Tại {config.venueName.toLowerCase().startsWith('khách sạn') ? config.venueName : `khách sạn ${config.venueName}`}
+            Tại {config.venueName}
           </p>
         </motion.div>
 
@@ -137,18 +145,18 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
         </motion.div>
       </div>
 
-      {/* 5. Full-Width Mid-Page Studio Celebration Photo (0:37 - 0:40) */}
+      {/* 5. Full-Width Mid-Page Studio Celebration Photo (Native 2:3 ratio) */}
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.9, ease: 'easeOut' }}
-        className="w-full aspect-[3/3.6] overflow-hidden bg-stone-900 mt-4"
+        className="w-full aspect-[2/3] overflow-hidden bg-stone-900 mt-4"
       >
         <img
           src={DEMO_IMAGES.coupleCelebration}
           alt={`${config.brideName} & ${config.groomName} celebration`}
-          className="w-full h-full object-fill"
+          className="w-full h-full object-cover object-center"
         />
       </motion.div>
     </section>
