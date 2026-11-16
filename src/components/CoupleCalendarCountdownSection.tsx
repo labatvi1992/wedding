@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { WeddingConfig } from '../types/wedding';
-import { DEMO_IMAGES } from '../data/initialData';
+import { DEMO_IMAGES, CARD_BRIDE_NAME, CARD_GROOM_NAME } from '../data/initialData';
 import { calculateCountdown } from '../utils/guestUtils';
 
 interface CoupleCalendarCountdownSectionProps {
@@ -11,6 +11,8 @@ interface CoupleCalendarCountdownSectionProps {
 export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSectionProps> = ({
   config,
 }) => {
+  const cardBride = config.cardBrideName || CARD_BRIDE_NAME;
+  const cardGroom = config.cardGroomName || CARD_GROOM_NAME;
   const [countdown, setCountdown] = useState(() => calculateCountdown(config.weddingDate));
 
   useEffect(() => {
@@ -115,7 +117,7 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
         >
           <img
             src={DEMO_IMAGES.bridePortrait}
-            alt={`Cô dâu ${config.brideName}`}
+            alt={`Cô dâu ${cardBride}`}
             className="w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/15 to-transparent pointer-events-none" />
@@ -126,7 +128,7 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
               Cô dâu
             </span>
             <h3 className="font-serif-editorial text-xl sm:text-2xl font-semibold uppercase tracking-wide text-stone-900">
-              {config.brideName.toUpperCase()}
+              {cardBride.toUpperCase()}
             </h3>
           </div>
         </motion.div>
@@ -177,7 +179,7 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
         >
           <img
             src={DEMO_IMAGES.groomPortrait}
-            alt={`Chú rể ${config.groomName}`}
+            alt={`Chú rể ${cardGroom}`}
             className="w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
@@ -188,7 +190,7 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
               Chú rể
             </span>
             <h3 className="font-serif-editorial text-xl sm:text-2xl font-medium uppercase tracking-wide text-white">
-              {config.groomName.toUpperCase()}
+              {cardGroom.toUpperCase()}
             </h3>
           </div>
         </motion.div>

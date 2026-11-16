@@ -1,6 +1,6 @@
 {
   "name": "Thiệp Cưới Online - Long Vi & Mỹ Quỳnh",
-  "description": "Ứng dụng thiệp cưới online phong cách CineLove Feed với quản lý khách mời và xác nhận tham dự qua Zalo.",
+  "description": "Ứng dụng thiệp cưới online phong cách hiện đại.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

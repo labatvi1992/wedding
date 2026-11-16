@@ -52,7 +52,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
   const [copiedShare, setCopiedShare] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  // RSVP Modal State
+  // RSVP Modal State (auto-synced when currentGuest is resolved from URL)
   const [guestName, setGuestName] = useState(currentGuest?.name || '');
   const [guestPhone, setGuestPhone] = useState(currentGuest?.phone || '');
   const [guestGroup, setGuestGroup] = useState<Guest['group']>(currentGuest?.group || 'Bạn Chú rể');
@@ -62,6 +62,15 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
   const [attendeesCount, setAttendeesCount] = useState<number>(currentGuest?.attendeesCount || 1);
   const [rsvpWish, setRsvpWish] = useState<string>(currentGuest?.wish || '');
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
+
+  React.useEffect(() => {
+    if (currentGuest?.name) {
+      setGuestName(currentGuest.name);
+    }
+    if (currentGuest?.phone) {
+      setGuestPhone(currentGuest.phone);
+    }
+  }, [currentGuest]);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -302,9 +311,10 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
           onScrollToRsvp={() => setActiveSheet('rsvp')}
         />
 
-        {/* 5. Vertical Numbered Timeline + RSVP Note + Closing "forever" Red Curtain Portrait */}
+        {/* 5. Vertical Numbered Timeline + RSVP Note + Closing Portrait */}
         <WeddingTimelineSection
           config={config}
+          guestName={currentGuest?.name}
           onOpenRsvpModal={() => setActiveSheet('rsvp')}
         />
 

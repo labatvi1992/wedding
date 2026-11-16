@@ -5,11 +5,13 @@ import { DEMO_IMAGES, LOVE_STORY_STEPS } from '../data/initialData';
 
 interface WeddingTimelineSectionProps {
   config: WeddingConfig;
+  guestName?: string;
   onOpenRsvpModal?: () => void;
 }
 
 export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
   config,
+  guestName,
   onOpenRsvpModal,
 }) => {
   const timelineEvents = LOVE_STORY_STEPS.map((step, idx) => ({
@@ -20,9 +22,28 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
     align: idx % 2 === 0 ? ('left' as const) : ('right' as const),
   }));
 
+  const displayGuestName = guestName?.trim() || 'Quý khách';
+
   return (
     <section id="section-timeline" className="w-full bg-white text-stone-900 pt-10 pb-0 select-none">
       <div className="px-4 sm:px-8 max-w-md mx-auto">
+        {/* Personalized Invitation Callout before "Thời gian" */}
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-8 px-3 py-4 rounded-2xl bg-stone-50/90 border border-stone-200/80 shadow-2xs"
+        >
+          <p className="font-serif-editorial text-[18px] sm:text-[20px] text-stone-800 leading-relaxed">
+            Mời{' '}
+            <span className="font-semibold text-[#721319] underline decoration-[#721319]/30 underline-offset-4">
+              {displayGuestName}
+            </span>{' '}
+            đến tham dự tiệc cưới để chung vui cùng gia đình
+          </p>
+        </motion.div>
+
         {/* Section Heading: "Thời gian" */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
@@ -115,13 +136,13 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
         </motion.div>
       </div>
 
-      {/* Full-Width Closing "forever" Portrait (Native 2:3 ratio) */}
+      {/* Full-Width Closing "forever" Photo (Native 3:2 ratio: 6048 x 4024) */}
       <motion.div
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 1 }}
-        className="relative w-full aspect-[2/3] overflow-hidden bg-stone-100"
+        className="relative w-full aspect-[3/2] overflow-hidden bg-stone-100"
       >
         <img
           src={DEMO_IMAGES.coupleForever}
@@ -135,9 +156,9 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.9, delay: 0.35 }}
-          className="absolute top-[28%] right-3 sm:right-5 pointer-events-none"
+          className="absolute top-[24%] right-3 sm:right-5 pointer-events-none"
         >
-          <span className="font-calligraphy text-[34px] sm:text-[42px] text-white/95 drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)] tracking-wide">
+          <span className="font-calligraphy text-[32px] sm:text-[40px] text-white/95 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)] tracking-wide">
             mãi bên nhau
           </span>
         </motion.div>

@@ -1,16 +1,46 @@
 import { Guest, GuestWish, WeddingConfig } from '../types/wedding';
 
+// ============================================================================
+// BIẾN TÊN CHÚ RỂ & CÔ DÂU RIÊNG BIỆT CHO TỪNG PHẦN (DỄ DÀNG CHỈNH SỬA)
+// ============================================================================
+
+// 1. Tên hiển thị ở ảnh mở đầu (Ngày Chung Đôi)
+export const HERO_GROOM_NAME = 'Đặng Long Vi';
+export const HERO_BRIDE_NAME = 'Trần Mỹ Quỳnh';
+
+// 2. Tên hiển thị trên khung ảnh chân dung Chú rể & Cô dâu (phần Đếm Ngược)
+export const CARD_GROOM_NAME = 'Long Vi';
+export const CARD_BRIDE_NAME = 'Mỹ Quỳnh';
+
+// 3. Tên hiển thị ở phần Thiệp Mời Lễ Thành Hôn (dưới thông tin Nhà Trai - Nhà Gái)
+export const INVITATION_GROOM_NAME = 'Đặng Long Vi';
+export const INVITATION_BRIDE_NAME = 'Trần Mỹ Quỳnh';
+
+// 4. Tên ngắn gọn & Tên đầy đủ mặc định
+export const GROOM_FULL_NAME = 'Đặng Long Vi';
+export const BRIDE_FULL_NAME = 'Trần Mỹ Quỳnh';
+export const GROOM_SHORT_NAME = 'Long Vi';
+export const BRIDE_SHORT_NAME = 'Mỹ Quỳnh';
+
 export const DEMO_IMAGES = {
   heroCouple: '/assets/aistudio/01-Hinh-Nen_8e97fd58.JPG',
   bridePortrait: '/assets/aistudio/02-Co-Dau_2e27414f.JPG',
   groomPortrait: '/assets/aistudio/03-Chu-Re_4c7c4f1d.JPG',
   coupleCelebration: '/assets/aistudio/03-Chu-Re_4c7c4f1d.JPG',
-  coupleForever: '/assets/aistudio/01-Hinh-Nen_8e97fd58.JPG',
+  coupleForever: '/assets/aistudio/04-Mai-Ben-Nhau_1e080bab.JPG',
 };
 
 export const INITIAL_WEDDING_CONFIG: WeddingConfig = {
-  groomName: 'Đặng Long Vi',
-  brideName: 'Trần Mỹ Quỳnh',
+  groomName: GROOM_FULL_NAME,
+  brideName: BRIDE_FULL_NAME,
+  groomShortName: GROOM_SHORT_NAME,
+  brideShortName: BRIDE_SHORT_NAME,
+  heroGroomName: HERO_GROOM_NAME,
+  heroBrideName: HERO_BRIDE_NAME,
+  cardGroomName: CARD_GROOM_NAME,
+  cardBrideName: CARD_BRIDE_NAME,
+  invitationGroomName: INVITATION_GROOM_NAME,
+  invitationBrideName: INVITATION_BRIDE_NAME,
   groomFamily: {
     father: '',
     mother: 'Bà. Trần Thị Thuý Hiệp',
@@ -189,29 +219,24 @@ export const INITIAL_WISHES: GuestWish[] = [
 
 export const WEDDING_GALLERY_IMAGES = [
   {
-    url: DEMO_IMAGES.heroCouple,
-    caption: 'Long Vi & Mỹ Quỳnh - Ngày Chung Đôi',
-    category: 'Hình nền',
+    url: '/assets/aistudio/Carousel-01_62db3fd6.JPG',
+    caption: 'Đặng Long Vi & Trần Mỹ Quỳnh',
+    category: 'Khoảnh khắc 01',
   },
   {
-    url: DEMO_IMAGES.bridePortrait,
-    caption: 'Cô dâu Mỹ Quỳnh',
-    category: 'Cô dâu',
+    url: '/assets/aistudio/Carousel-02_509080cc.JPG',
+    caption: 'Đặng Long Vi & Trần Mỹ Quỳnh',
+    category: 'Khoảnh khắc 02',
   },
   {
-    url: DEMO_IMAGES.groomPortrait,
-    caption: 'Chú rể Long Vi',
-    category: 'Chú rể',
+    url: '/assets/aistudio/Carousel-03_8833b15d.JPG',
+    caption: 'Đặng Long Vi & Trần Mỹ Quỳnh',
+    category: 'Khoảnh khắc 03',
   },
   {
-    url: DEMO_IMAGES.coupleCelebration,
-    caption: 'Khoảnh khắc rạng rỡ bên nhau',
-    category: 'Lễ cưới',
-  },
-  {
-    url: DEMO_IMAGES.coupleForever,
-    caption: 'Đời đẩy hai đứa về chung một lối - Mãi bên nhau',
-    category: 'Khoảnh khắc',
+    url: '/assets/aistudio/Carousel-04_08495081.JPG',
+    caption: 'Đặng Long Vi & Trần Mỹ Quỳnh',
+    category: 'Khoảnh khắc 04',
   },
 ];
 

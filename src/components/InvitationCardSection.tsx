@@ -1,7 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { WeddingConfig } from '../types/wedding';
-import { DEMO_IMAGES } from '../data/initialData';
+import {
+  INVITATION_GROOM_NAME,
+  INVITATION_BRIDE_NAME,
+} from '../data/initialData';
+import { PhotoGallerySection } from './PhotoGallerySection';
 
 interface InvitationCardSectionProps {
   config: WeddingConfig;
@@ -9,6 +13,8 @@ interface InvitationCardSectionProps {
 }
 
 export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ config }) => {
+  const invitationGroom = config.invitationGroomName || INVITATION_GROOM_NAME;
+  const invitationBride = config.invitationBrideName || INVITATION_BRIDE_NAME;
   const mapEmbedUrl =
     config.googleMapsEmbedUrl ||
     'https://maps.google.com/maps?q=73RP%2BHQG%20Nh%C3%A0%20h%C3%A0ng%20ti%E1%BB%87c%20c%C6%B0%E1%BB%9Bi%20Ng%E1%BB%8Dc%20B%C3%ADch%20Palace,%20B%C3%ACnh%20D%C6%B0%C6%A1ng,%20Gia%20Lai&t=&z=16&ie=UTF8&iwloc=&output=embed';
@@ -67,7 +73,7 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
           </div>
         </motion.div>
 
-        {/* 2. Large Calligraphy Names: Đặng Long Vi & Trần Mỹ Quỳnh */}
+        {/* 2. Large Calligraphy Names */}
         <motion.div
           initial={{ opacity: 0, scale: 0.94 }}
           whileInView={{ opacity: 1, scale: 1 }}
@@ -76,13 +82,13 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
           className="space-y-1 my-6"
         >
           <h2 className="font-calligraphy text-[48px] sm:text-[58px] text-stone-900 leading-tight">
-            {config.groomName}
+            {invitationGroom}
           </h2>
           <span className="block font-calligraphy text-[38px] sm:text-[44px] text-stone-800 leading-none py-1">
             &amp;
           </span>
           <h2 className="font-calligraphy text-[48px] sm:text-[58px] text-stone-900 leading-tight">
-            {config.brideName}
+            {invitationBride}
           </h2>
         </motion.div>
 
@@ -158,20 +164,8 @@ export const InvitationCardSection: React.FC<InvitationCardSectionProps> = ({ co
         </div>
       </div>
 
-      {/* 5. Full-Width Mid-Page Studio Celebration Photo (Native 2:3 ratio) */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.9, ease: 'easeOut' }}
-        className="w-full aspect-[2/3] overflow-hidden bg-stone-900 mt-4"
-      >
-        <img
-          src={DEMO_IMAGES.coupleCelebration}
-          alt={`${config.groomName} & ${config.brideName} celebration`}
-          className="w-full h-full object-cover object-center"
-        />
-      </motion.div>
+      {/* 5. 3D Coverflow Photo Carousel below Google Maps */}
+      <PhotoGallerySection />
     </section>
   );
 };

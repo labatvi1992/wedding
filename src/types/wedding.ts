@@ -28,6 +28,14 @@ export interface GuestStats {
 export interface WeddingConfig {
   groomName: string;
   brideName: string;
+  groomShortName?: string;
+  brideShortName?: string;
+  heroGroomName?: string;
+  heroBrideName?: string;
+  cardGroomName?: string;
+  cardBrideName?: string;
+  invitationGroomName?: string;
+  invitationBrideName?: string;
   groomDob?: string;
   brideDob?: string;
   groomFamily: {

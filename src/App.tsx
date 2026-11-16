@@ -7,6 +7,7 @@ import {
 } from './data/initialData';
 import { WeddingInvitationFeed } from './components/WeddingInvitationFeed';
 import { GuestManagement } from './components/GuestManagement';
+import { SetupGuestLinkPage } from './components/SetupGuestLinkPage';
 
 const STORAGE_KEYS = {
   GUESTS: 'wedding_invitation_guests_v6',
@@ -15,13 +16,24 @@ const STORAGE_KEYS = {
 };
 
 export default function App() {
-  const [view, setView] = useState<'invitation' | 'management'>('invitation');
+  const [view, setView] = useState<'invitation' | 'management' | 'setup'>(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.replace(/\/+$/, '');
+      if (path === '/thiet-lap' || path.endsWith('/thiet-lap')) {
+        return 'setup';
+      }
+    }
+    return 'invitation';
+  });
 
-  // Wedding Configuration state
+  // Wedding Configuration state (prioritize code constants in INITIAL_WEDDING_CONFIG)
   const [config, setConfig] = useState<WeddingConfig>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.CONFIG);
-      return saved ? JSON.parse(saved) : INITIAL_WEDDING_CONFIG;
+      if (saved) {
+        return { ...JSON.parse(saved), ...INITIAL_WEDDING_CONFIG };
+      }
+      return INITIAL_WEDDING_CONFIG;
     } catch {
       return INITIAL_WEDDING_CONFIG;
     }
@@ -48,44 +60,91 @@ export default function App() {
   });
 
   // Identify current guest if opened via personalized link (?guest=... or ?name=...)
-  const [currentGuest, setCurrentGuest] = useState<Guest | null>(null);
-
-  useEffect(() => {
-    // Check URL parameters
-    const params = new URLSearchParams(window.location.search);
-    const guestParam = params.get('guest') || params.get('name');
-    const viewParam = params.get('view');
-
-    if (viewParam === 'admin' || viewParam === 'management') {
-      setView('management');
-    }
-
-    if (guestParam) {
-      const decodedParam = decodeURIComponent(guestParam).toLowerCase().trim();
-      const matched = guests.find(
-        (g) =>
-          (g.customSlug && g.customSlug.toLowerCase() === decodedParam) ||
-          g.name.toLowerCase().includes(decodedParam) ||
-          decodedParam.includes(g.name.toLowerCase())
-      );
-
-      if (matched) {
-        setCurrentGuest(matched);
-      } else {
-        // Create personalized guest object for display
-        const customName = decodeURIComponent(guestParam);
-        setCurrentGuest({
-          id: `guest-${Date.now()}`,
-          name: customName,
-          relationship: 'Khách quý',
-          group: 'Bạn Chú rể',
-          phone: '',
-          status: 'pending',
-          attendeesCount: 1,
-        });
+  const [currentGuest, setCurrentGuest] = useState<Guest | null>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const guestParam = params.get('name') || params.get('guest');
+      if (guestParam) {
+        const customName = decodeURIComponent(guestParam).trim();
+        if (customName) {
+          return {
+            id: `guest-init`,
+            name: customName,
+            relationship: 'Khách quý',
+            group: 'Bạn Chú rể',
+            phone: '',
+            status: 'pending',
+            attendeesCount: 1,
+          };
+        }
       }
     }
+    return null;
+  });
+
+  useEffect(() => {
+    const syncFromLocation = () => {
+      const path = window.location.pathname.replace(/\/+$/, '');
+      const params = new URLSearchParams(window.location.search);
+      const guestParam = params.get('name') || params.get('guest');
+      const viewParam = params.get('view');
+
+      if (path === '/thiet-lap' || path.endsWith('/thiet-lap') || viewParam === 'setup') {
+        setView('setup');
+      } else if (viewParam === 'admin' || viewParam === 'management') {
+        setView('management');
+      } else {
+        setView('invitation');
+      }
+
+      if (guestParam) {
+        const decodedParam = decodeURIComponent(guestParam).trim();
+        const lowerParam = decodedParam.toLowerCase();
+        const matched = guests.find(
+          (g) =>
+            (g.customSlug && decodeURIComponent(g.customSlug).toLowerCase() === lowerParam) ||
+            g.name.toLowerCase() === lowerParam
+        );
+
+        if (matched) {
+          setCurrentGuest(matched);
+        } else if (decodedParam) {
+          setCurrentGuest({
+            id: `guest-${Date.now()}`,
+            name: decodedParam,
+            relationship: 'Khách quý',
+            group: 'Bạn Chú rể',
+            phone: '',
+            status: 'pending',
+            attendeesCount: 1,
+          });
+        }
+      }
+    };
+
+    syncFromLocation();
+    window.addEventListener('popstate', syncFromLocation);
+    return () => window.removeEventListener('popstate', syncFromLocation);
   }, [guests]);
+
+  const handleNavigateToHomeWithGuest = (guestName?: string) => {
+    const trimmed = guestName?.trim();
+    const targetUrl = trimmed ? `/?name=${encodeURIComponent(trimmed)}` : '/';
+    window.history.pushState({}, '', targetUrl);
+    if (trimmed) {
+      setCurrentGuest({
+        id: `guest-${Date.now()}`,
+        name: trimmed,
+        relationship: 'Khách quý',
+        group: 'Bạn Chú rể',
+        phone: '',
+        status: 'pending',
+        attendeesCount: 1,
+      });
+    }
+    setView('invitation');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Persist to local storage
   const handleUpdateGuests = (updated: Guest[]) => {
@@ -174,7 +233,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-stone-950 text-stone-100 font-sans-clean antialiased selection:bg-rose-900 selection:text-white">
-      {view === 'invitation' ? (
+      {view === 'setup' ? (
+        <SetupGuestLinkPage
+          config={config}
+          guests={guests}
+          onUpdateGuests={handleUpdateGuests}
+          onBackToHome={handleNavigateToHomeWithGuest}
+        />
+      ) : view === 'invitation' ? (
         <WeddingInvitationFeed
           config={config}
           currentGuest={currentGuest}
