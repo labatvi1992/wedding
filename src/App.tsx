@@ -15,16 +15,39 @@ const STORAGE_KEYS = {
   WISHES: 'wedding_invitation_wishes_v6',
 };
 
+const detectInitialView = (): 'invitation' | 'management' | 'setup' => {
+  if (typeof window === 'undefined') return 'invitation';
+
+  const path = window.location.pathname.replace(/\/+$/, '');
+  const hash = window.location.hash.replace(/^#\/?/, '').replace(/\/+$/, '');
+  const params = new URLSearchParams(window.location.search);
+  const viewParam = params.get('view');
+
+  if (
+    path === '/thiet-lap' ||
+    path.endsWith('/thiet-lap') ||
+    hash === 'thiet-lap' ||
+    viewParam === 'setup' ||
+    viewParam === 'thiet-lap' ||
+    params.has('thiet-lap')
+  ) {
+    return 'setup';
+  }
+
+  if (
+    path === '/quan-ly' ||
+    hash === 'quan-ly' ||
+    viewParam === 'admin' ||
+    viewParam === 'management'
+  ) {
+    return 'management';
+  }
+
+  return 'invitation';
+};
+
 export default function App() {
-  const [view, setView] = useState<'invitation' | 'management' | 'setup'>(() => {
-    if (typeof window !== 'undefined') {
-      const path = window.location.pathname.replace(/\/+$/, '');
-      if (path === '/thiet-lap' || path.endsWith('/thiet-lap')) {
-        return 'setup';
-      }
-    }
-    return 'invitation';
-  });
+  const [view, setView] = useState<'invitation' | 'management' | 'setup'>(detectInitialView);
 
   // Wedding Configuration state (prioritize code constants in INITIAL_WEDDING_CONFIG)
   const [config, setConfig] = useState<WeddingConfig>(() => {
@@ -84,18 +107,10 @@ export default function App() {
 
   useEffect(() => {
     const syncFromLocation = () => {
-      const path = window.location.pathname.replace(/\/+$/, '');
       const params = new URLSearchParams(window.location.search);
       const guestParam = params.get('name') || params.get('guest');
-      const viewParam = params.get('view');
 
-      if (path === '/thiet-lap' || path.endsWith('/thiet-lap') || viewParam === 'setup') {
-        setView('setup');
-      } else if (viewParam === 'admin' || viewParam === 'management') {
-        setView('management');
-      } else {
-        setView('invitation');
-      }
+      setView(detectInitialView());
 
       if (guestParam) {
         const decodedParam = decodeURIComponent(guestParam).trim();
@@ -124,7 +139,11 @@ export default function App() {
 
     syncFromLocation();
     window.addEventListener('popstate', syncFromLocation);
-    return () => window.removeEventListener('popstate', syncFromLocation);
+    window.addEventListener('hashchange', syncFromLocation);
+    return () => {
+      window.removeEventListener('popstate', syncFromLocation);
+      window.removeEventListener('hashchange', syncFromLocation);
+    };
   }, [guests]);
 
   const handleNavigateToHomeWithGuest = (guestName?: string) => {
