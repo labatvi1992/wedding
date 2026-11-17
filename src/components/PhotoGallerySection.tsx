@@ -1,191 +1,265 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import Glide from '@glidejs/glide';
 import { ChevronLeft, ChevronRight, Maximize2, X } from 'lucide-react';
 import { WEDDING_GALLERY_IMAGES } from '../data/initialData';
 
+// Build a circular ring with at least 7 slots so wrap-around happens at
+// distance >= 3.5 (completely off-screen), eliminating any last-slide jump.
+const TOTAL_IMAGES = WEDDING_GALLERY_IMAGES.length;
+const RING_MULTIPLIER = TOTAL_IMAGES >= 6 ? 1 : 2;
+const RING_LENGTH = TOTAL_IMAGES * RING_MULTIPLIER;
+const RING_ITEMS = Array.from({ length: RING_LENGTH }, (_, slotIdx) => ({
+  slotIdx,
+  imageIdx: slotIdx % TOTAL_IMAGES,
+  data: WEDDING_GALLERY_IMAGES[slotIdx % TOTAL_IMAGES],
+}));
+
 export const PhotoGallerySection: React.FC = () => {
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const glideInstanceRef = useRef<Glide | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Continuous floating-point position along the infinite circular ring
+  const currentPosRef = useRef<number>(0);
+  const targetPosRef = useRef<number>(0);
+  const animFrameRef = useRef<number | null>(null);
+  const isDraggingRef = useRef<boolean>(false);
+  const isHoveredRef = useRef<boolean>(false);
+  const dragStartXRef = useRef<number>(0);
+  const dragStartPosRef = useRef<number>(0);
+  const dragMovedRef = useRef<boolean>(false);
+  const lastDragTimeRef = useRef<number>(0);
+  const dragVelocityRef = useRef<number>(0);
+  const lastPointerXRef = useRef<number>(0);
+
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [activeCenterIdx, setActiveCenterIdx] = useState<number>(0);
-  const animationFrameId = useRef<number | null>(null);
 
-  // Calculate and apply smooth 3D Coverflow transform to all slides
-  const update3DEffect = useCallback(() => {
-    if (!sliderRef.current) return;
-    const track = sliderRef.current.querySelector<HTMLElement>('[data-glide-el="track"]');
-    if (!track) return;
-
-    const trackRect = track.getBoundingClientRect();
-    const trackCenterX = trackRect.left + trackRect.width / 2;
-
-    const slides = sliderRef.current.querySelectorAll<HTMLElement>('.glide__slide');
-    if (!slides.length) return;
-
-    let closestIdx = 0;
-    let minDistance = Infinity;
-
-    slides.forEach((slide) => {
-      const card = slide.querySelector<HTMLElement>('.glide-3d-card-wrapper');
-      if (!card) return;
-
-      const slideRect = slide.getBoundingClientRect();
-      const slideCenterX = slideRect.left + slideRect.width / 2;
-      const slideWidth = slideRect.width || 1;
-
-      const rawDistance = (slideCenterX - trackCenterX) / slideWidth;
-      const distance = Math.max(-2.5, Math.min(2.5, rawDistance));
-      const absDist = Math.abs(distance);
-
-      if (absDist < minDistance) {
-        minDistance = absDist;
-        const rawDataIdx = slide.getAttribute('data-gallery-idx');
-        if (rawDataIdx !== null) {
-          closestIdx = parseInt(rawDataIdx, 10);
-        }
-      }
-
-      if (absDist < 0.32) {
-        // Active center card: crisp forward pop, 0deg rotation
-        card.style.transform =
-          'perspective(1100px) rotateY(0deg) scale(1) translateZ(30px)';
-        card.style.opacity = '1';
-        card.style.filter = 'brightness(1.02) contrast(1.02)';
-        card.style.zIndex = '30';
-        card.classList.add('is-active-3d');
-      } else {
-        // Side cards angled in 3D perspective toward the center
-        const isLeft = distance < 0;
-        const angle = isLeft
-          ? Math.min(34, Math.max(18, absDist * 28))
-          : -Math.min(34, Math.max(18, absDist * 28));
-
-        const scale = Math.max(0.78, 1 - absDist * 0.16);
-        const translateZ = -Math.min(110, absDist * 55);
-        const opacity = Math.max(0.48, 1 - absDist * 0.35);
-        const brightness = Math.max(0.72, 1 - absDist * 0.22);
-
-        card.style.transform = `perspective(1100px) rotateY(${angle.toFixed(1)}deg) scale(${scale.toFixed(2)}) translateZ(${translateZ.toFixed(0)}px)`;
-        card.style.opacity = opacity.toFixed(2);
-        card.style.filter = `brightness(${brightness.toFixed(2)})`;
-        card.style.zIndex = `${Math.max(1, 20 - Math.round(absDist * 6))}`;
-        card.classList.remove('is-active-3d');
-      }
-    });
-
-    if (minDistance < 0.5) {
-      setActiveCenterIdx(closestIdx);
-    }
+  // Normalize any integer/float position to [0, TOTAL_IMAGES - 1]
+  const getNormalizedImageIdx = useCallback((pos: number) => {
+    const rounded = Math.round(pos);
+    return ((rounded % TOTAL_IMAGES) + TOTAL_IMAGES) % TOTAL_IMAGES;
   }, []);
 
-  // Continuous smooth 3D frame updates during slide transitions & dragging
-  const triggerTransitionFrames = useCallback(() => {
-    update3DEffect();
-    let frames = 0;
-    const loop = () => {
-      update3DEffect();
-      frames++;
-      if (frames < 42) {
-        animationFrameId.current = requestAnimationFrame(loop);
-      }
-    };
-    if (animationFrameId.current) {
-      cancelAnimationFrame(animationFrameId.current);
-    }
-    animationFrameId.current = requestAnimationFrame(loop);
-  }, [update3DEffect]);
+  // Compute and apply 3D Coverflow transforms for all 8 circular slots at 60fps
+  const render3DFrame = useCallback(() => {
+    const pos = currentPosRef.current;
+    const stageWidth = stageRef.current?.clientWidth || 420;
+    // Horizontal spacing between adjacent 3D cards
+    const horizontalStep = Math.max(155, Math.min(210, stageWidth * 0.44));
 
+    RING_ITEMS.forEach(({ slotIdx }) => {
+      const el = cardRefs.current[slotIdx];
+      if (!el) return;
+
+      // Shortest signed circular distance in [-RING_LENGTH/2, +RING_LENGTH/2]
+      let diff = (slotIdx - pos) % RING_LENGTH;
+      if (diff > RING_LENGTH / 2) diff -= RING_LENGTH;
+      if (diff < -RING_LENGTH / 2) diff += RING_LENGTH;
+
+      const absDiff = Math.abs(diff);
+
+      // Hide slots on the far back side of the ring so wrap-around is invisible
+      if (absDiff > 2.2) {
+        el.style.opacity = '0';
+        el.style.pointerEvents = 'none';
+        el.style.zIndex = '0';
+        el.style.transform = `perspective(1100px) translate3d(${(diff * horizontalStep).toFixed(1)}px, 0px, 0px) scale(0.7)`;
+        return;
+      }
+
+      // Smooth continuous interpolation across center (0) and side cards (±1, ±2)
+      const translateX = diff * horizontalStep;
+      const rotateY = -diff * 28; // Left card tilts +28deg, right card tilts -28deg
+      const clampedRotateY = Math.max(-34, Math.min(34, rotateY));
+      const scale = Math.max(0.78, 1 - absDiff * 0.16);
+      const opacity = Math.max(0.46, Math.min(1, 1 - absDiff * 0.36));
+      const brightness = Math.max(0.75, 1.02 - absDiff * 0.2);
+      const zIndex = Math.round(1000 - absDiff * 300);
+
+      el.style.transform = `perspective(1100px) translate3d(${translateX.toFixed(2)}px, 0px, 0px) rotateY(${clampedRotateY.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+      el.style.opacity = opacity.toFixed(3);
+      el.style.filter = `brightness(${brightness.toFixed(2)})`;
+      el.style.zIndex = `${Math.max(1, zIndex)}`;
+      el.style.pointerEvents = absDiff < 1.35 ? 'auto' : 'none';
+    });
+  }, []);
+
+  // Smooth animation loop towards targetPosRef
+  const startAnimationLoop = useCallback(() => {
+    if (animFrameRef.current !== null) return;
+
+    const tick = () => {
+      if (!isDraggingRef.current) {
+        const diff = targetPosRef.current - currentPosRef.current;
+        if (Math.abs(diff) > 0.0015) {
+          currentPosRef.current += diff * 0.14;
+          render3DFrame();
+          animFrameRef.current = requestAnimationFrame(tick);
+          return;
+        } else {
+          currentPosRef.current = targetPosRef.current;
+          render3DFrame();
+        }
+      }
+      animFrameRef.current = null;
+    };
+
+    animFrameRef.current = requestAnimationFrame(tick);
+  }, [render3DFrame]);
+
+  // Step forward/backward by `delta` slides seamlessly
+  const stepBy = useCallback(
+    (delta: number) => {
+      targetPosRef.current = Math.round(targetPosRef.current + delta);
+      setActiveCenterIdx(getNormalizedImageIdx(targetPosRef.current));
+      startAnimationLoop();
+    },
+    [getNormalizedImageIdx, startAnimationLoop]
+  );
+
+  // Jump to specific dot index via shortest circular path
+  const goToDot = useCallback(
+    (dotIdx: number) => {
+      const currentNorm = getNormalizedImageIdx(targetPosRef.current);
+      let delta = dotIdx - currentNorm;
+      if (delta > TOTAL_IMAGES / 2) delta -= TOTAL_IMAGES;
+      if (delta < -TOTAL_IMAGES / 2) delta += TOTAL_IMAGES;
+      stepBy(delta);
+    },
+    [getNormalizedImageIdx, stepBy]
+  );
+
+  // Initial render & resize listener
   useEffect(() => {
-    if (!sliderRef.current) return;
-
-    const glide = new Glide(sliderRef.current, {
-      type: 'carousel',
-      startAt: 0,
-      focusAt: 'center',
-      perView: 1,
-      peek: { before: 78, after: 78 },
-      gap: 14,
-      autoplay: 3500,
-      hoverpause: true,
-      animationDuration: 650,
-      animationTimingFunc: 'cubic-bezier(0.25, 1, 0.5, 1)',
-      touchRatio: 0.65,
-      breakpoints: {
-        420: {
-          perView: 1,
-          peek: { before: 64, after: 64 },
-          gap: 12,
-          focusAt: 'center',
-        },
-      },
-    });
-
-    glide.on(['mount.after', 'build.after'], () => {
-      if (sliderRef.current) {
-        const slides = sliderRef.current.querySelectorAll<HTMLElement>('.glide__slide');
-        slides.forEach((slide, sIdx) => {
-          const realIdx = sIdx % WEDDING_GALLERY_IMAGES.length;
-          slide.setAttribute('data-gallery-idx', realIdx.toString());
-        });
-      }
-      setTimeout(update3DEffect, 40);
-    });
-
-    glide.on(['run', 'run.after', 'swipe.move', 'move'], () => {
-      triggerTransitionFrames();
-    });
-
-    glide.on(['move.after', 'resize'], () => {
-      update3DEffect();
-    });
-
-    glide.mount();
-    glideInstanceRef.current = glide;
-
-    window.addEventListener('resize', update3DEffect);
-
+    render3DFrame();
+    const handleResize = () => render3DFrame();
+    window.addEventListener('resize', handleResize);
     return () => {
-      window.removeEventListener('resize', update3DEffect);
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
-      try {
-        glide.destroy();
-      } catch {
-        // Ignore cleanup errors
+      window.removeEventListener('resize', handleResize);
+      if (animFrameRef.current !== null) {
+        cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
       }
     };
-  }, [triggerTransitionFrames, update3DEffect]);
+  }, [render3DFrame]);
 
-  const handleSlideClick = (idx: number, e: React.MouseEvent) => {
+  // Autoplay every 3.5s without any reset glitch
+  useEffect(() => {
+    if (selectedIdx !== null) return;
+    const timer = setInterval(() => {
+      if (!isDraggingRef.current && !isHoveredRef.current) {
+        stepBy(1);
+      }
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [selectedIdx, stepBy]);
+
+  // Pointer / Touch drag handlers
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Ignore clicks on navigation arrow buttons
+    if ((e.target as HTMLElement).closest('button')) return;
+
+    isDraggingRef.current = true;
+    dragMovedRef.current = false;
+    dragStartXRef.current = e.clientX;
+    lastPointerXRef.current = e.clientX;
+    dragStartPosRef.current = currentPosRef.current;
+    lastDragTimeRef.current = performance.now();
+    dragVelocityRef.current = 0;
+
+    if (animFrameRef.current !== null) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current) return;
+
+    const dx = e.clientX - dragStartXRef.current;
+    if (Math.abs(dx) > 6) {
+      dragMovedRef.current = true;
+    }
+
+    const now = performance.now();
+    const dt = Math.max(1, now - lastDragTimeRef.current);
+    dragVelocityRef.current = (e.clientX - lastPointerXRef.current) / dt;
+    lastPointerXRef.current = e.clientX;
+    lastDragTimeRef.current = now;
+
+    const stageWidth = stageRef.current?.clientWidth || 420;
+    const dragSensitivity = Math.max(180, stageWidth * 0.52);
+
+    currentPosRef.current = dragStartPosRef.current - dx / dragSensitivity;
+    render3DFrame();
+  };
+
+  const finishDrag = () => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+
+    const draggedSlides = currentPosRef.current - dragStartPosRef.current;
+    const velocityBoost = -dragVelocityRef.current * 0.22;
+    const projected = currentPosRef.current + velocityBoost;
+
+    let snapped: number;
+    if (Math.abs(draggedSlides) > 0.18 || Math.abs(dragVelocityRef.current) > 0.35) {
+      snapped =
+        draggedSlides + velocityBoost > 0
+          ? Math.ceil(dragStartPosRef.current)
+          : Math.floor(dragStartPosRef.current);
+    } else {
+      snapped = Math.round(projected);
+    }
+
+    targetPosRef.current = snapped;
+    setActiveCenterIdx(getNormalizedImageIdx(snapped));
+    startAnimationLoop();
+  };
+
+  const handleCardClick = (slotIdx: number, imageIdx: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (idx === activeCenterIdx) {
-      setSelectedIdx(idx);
-    } else if (glideInstanceRef.current) {
-      glideInstanceRef.current.go(`=${idx}`);
+    if (dragMovedRef.current) return;
+
+    // Check distance of clicked slot from current center
+    let diff = (slotIdx - targetPosRef.current) % RING_LENGTH;
+    if (diff > RING_LENGTH / 2) diff -= RING_LENGTH;
+    if (diff < -RING_LENGTH / 2) diff += RING_LENGTH;
+
+    if (Math.abs(diff) < 0.35) {
+      setSelectedIdx(imageIdx);
+    } else {
+      stepBy(Math.round(diff));
     }
   };
 
   const handlePrevLightbox = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (selectedIdx !== null) {
-      setSelectedIdx(
-        (selectedIdx - 1 + WEDDING_GALLERY_IMAGES.length) % WEDDING_GALLERY_IMAGES.length
-      );
+      setSelectedIdx((selectedIdx - 1 + TOTAL_IMAGES) % TOTAL_IMAGES);
     }
   };
 
   const handleNextLightbox = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (selectedIdx !== null) {
-      setSelectedIdx((selectedIdx + 1) % WEDDING_GALLERY_IMAGES.length);
+      setSelectedIdx((selectedIdx + 1) % TOTAL_IMAGES);
     }
   };
 
   return (
-    <div className="w-full pt-4 pb-6 bg-white relative overflow-hidden select-none">
+    <div
+      className="w-full pt-9 pb-11 bg-white relative overflow-hidden select-none"
+      onMouseEnter={() => {
+        isHoveredRef.current = true;
+      }}
+      onMouseLeave={() => {
+        isHoveredRef.current = false;
+      }}
+    >
       {/* Section Heading */}
-      <div className="text-center mb-3 px-4">
+      <div className="text-center mb-4 px-4">
         <h3 className="font-calligraphy text-[36px] sm:text-[42px] text-[#721319] leading-tight">
           Khoảnh khắc hạnh phúc
         </h3>
@@ -194,97 +268,87 @@ export const PhotoGallerySection: React.FC = () => {
         </p>
       </div>
 
-      {/* 3D Coverflow Stage */}
-      <div className="relative w-full glide-3d-stage">
-        <div ref={sliderRef} className="glide">
-          <div
-            className="glide__track py-5 overflow-visible"
-            data-glide-el="track"
-          >
-            <ul className="glide__slides flex items-center">
-              {WEDDING_GALLERY_IMAGES.map((img, idx) => (
-                <li
-                  key={idx}
-                  className="glide__slide relative"
-                  onClick={(e) => handleSlideClick(idx, e)}
-                >
-                  <div
-                    className="glide-3d-card-wrapper group relative aspect-[2/3] rounded-[24px] overflow-hidden bg-[#878785] border border-stone-200/80 cursor-pointer shadow-[0_14px_34px_rgba(0,0,0,0.22)] transition-transform duration-300 ease-out"
-                    style={{ transformStyle: 'preserve-3d', willChange: 'transform, opacity' }}
-                  >
-                    {img.url.includes('Carousel-02') ? (
-                      <div className="w-full h-full bg-[#878785] flex items-end justify-center overflow-hidden">
-                        <img
-                          src={img.url}
-                          alt={img.caption}
-                          className="w-[116%] max-w-none h-auto object-contain object-bottom -translate-x-[2%]"
-                          style={{
-                            WebkitMaskImage:
-                              'linear-gradient(to bottom, transparent 0%, black 7%, black 100%)',
-                            maskImage:
-                              'linear-gradient(to bottom, transparent 0%, black 7%, black 100%)',
-                          }}
-                          loading="lazy"
-                        />
-                      </div>
-                    ) : (
-                      <img
-                        src={img.url}
-                        alt={img.caption}
-                        className="w-full h-full object-cover object-center"
-                        loading="lazy"
-                      />
-                    )}
+      {/* 3D Coverflow Stage with +20px vertical margin/padding */}
+      <div className="relative w-full glide-3d-stage my-5">
+        <div
+          ref={stageRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={finishDrag}
+          onPointerCancel={finishDrag}
+          className="relative w-full py-10 flex items-center justify-center overflow-visible touch-pan-y cursor-grab active:cursor-grabbing"
+        >
+          {/* Invisible sizing spacer matching the active center card width (narrowed by 20px each side via horizontal padding) */}
+          <div className="w-[calc(100%-128px)] sm:w-[calc(100%-156px)] aspect-[2/3] pointer-events-none opacity-0" />
 
-                    {/* Zoom icon on center card */}
-                    <div className="absolute top-3 right-3 p-1.5 rounded-full bg-black/35 text-white/90 backdrop-blur-xs opacity-75 group-hover:opacity-100 transition-opacity">
-                      <Maximize2 className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Circular 3D Cards Ring */}
+          {RING_ITEMS.map(({ slotIdx, imageIdx, data }) => (
+            <div
+              key={slotIdx}
+              ref={(el) => {
+                cardRefs.current[slotIdx] = el;
+              }}
+              onClick={(e) => handleCardClick(slotIdx, imageIdx, e)}
+              className="glide-3d-card-wrapper group absolute w-[calc(100%-128px)] sm:w-[calc(100%-156px)] aspect-[2/3] rounded-[24px] overflow-hidden bg-[#878785] border border-stone-200/80 cursor-pointer shadow-[0_14px_34px_rgba(0,0,0,0.22)]"
+              style={{
+                willChange: 'transform, opacity, filter',
+                backfaceVisibility: 'hidden',
+              }}
+            >
+              <img
+                src={data.url}
+                alt={data.caption}
+                draggable={false}
+                className="w-full h-full object-cover object-center pointer-events-none select-none"
+              />
+
+              {/* Zoom icon on card */}
+              <div className="absolute top-3 right-3 p-1.5 rounded-full bg-black/35 text-white/90 backdrop-blur-xs opacity-75 group-hover:opacity-100 transition-opacity pointer-events-none">
+                <Maximize2 className="w-3.5 h-3.5" />
+              </div>
+            </div>
+          ))}
 
           {/* Left / Right Navigation Arrows */}
-          <div className="glide__arrows" data-glide-el="controls">
-            <button
-              type="button"
-              className="glide__arrow glide__arrow--left absolute left-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-[#721319] text-stone-800 hover:text-white border border-stone-200/80 flex items-center justify-center shadow-lg backdrop-blur-xs transition-all active:scale-95 cursor-pointer z-30"
-              data-glide-dir="<"
-              aria-label="Ảnh trước"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              type="button"
-              className="glide__arrow glide__arrow--right absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-[#721319] text-stone-800 hover:text-white border border-stone-200/80 flex items-center justify-center shadow-lg backdrop-blur-xs transition-all active:scale-95 cursor-pointer z-30"
-              data-glide-dir=">"
-              aria-label="Ảnh tiếp theo"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Pagination Dots */}
-          <div
-            className="glide__bullets flex items-center justify-center gap-2 pt-2"
-            data-glide-el="controls[nav]"
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              stepBy(-1);
+            }}
+            className=" absolute left-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-[#721319] text-stone-800 hover:text-white border border-stone-200/80 flex items-center justify-center shadow-lg backdrop-blur-xs transition-all active:scale-95 cursor-pointer z-40"
+            aria-label="Ảnh trước"
           >
-            {WEDDING_GALLERY_IMAGES.map((_, dotIdx) => (
-              <button
-                key={dotIdx}
-                type="button"
-                onClick={() => glideInstanceRef.current?.go(`=${dotIdx}`)}
-                className={`h-2 rounded-full transition-all cursor-pointer ${
-                  activeCenterIdx === dotIdx
-                    ? 'w-6 bg-[#721319]'
-                    : 'w-2 bg-stone-300 hover:bg-stone-400'
-                }`}
-                aria-label={`Chuyển đến ảnh ${dotIdx + 1}`}
-              />
-            ))}
-          </div>
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              stepBy(1);
+            }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-[#721319] text-stone-800 hover:text-white border border-stone-200/80 flex items-center justify-center shadow-lg backdrop-blur-xs transition-all active:scale-95 cursor-pointer z-40"
+            aria-label="Ảnh tiếp theo"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Pagination Dots */}
+        <div className="flex items-center justify-center gap-2 pt-2">
+          {WEDDING_GALLERY_IMAGES.map((_, dotIdx) => (
+            <button
+              key={dotIdx}
+              type="button"
+              onClick={() => goToDot(dotIdx)}
+              className={`h-2 rounded-full transition-all cursor-pointer ${
+                activeCenterIdx === dotIdx
+                  ? 'w-6 bg-[#721319]'
+                  : 'w-2 bg-stone-300 hover:bg-stone-400'
+              }`}
+              aria-label={`Chuyển đến ảnh ${dotIdx + 1}`}
+            />
+          ))}
         </div>
       </div>
 
@@ -327,7 +391,7 @@ export const PhotoGallerySection: React.FC = () => {
               {WEDDING_GALLERY_IMAGES[selectedIdx].caption}
             </p>
             <span className="text-xs text-stone-400 mt-0.5 font-sans-clean">
-              {selectedIdx + 1} / {WEDDING_GALLERY_IMAGES.length}
+              {selectedIdx + 1} / {TOTAL_IMAGES}
             </span>
           </div>
 

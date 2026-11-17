@@ -219,24 +219,39 @@ export const INITIAL_WISHES: GuestWish[] = [
 
 export const WEDDING_GALLERY_IMAGES = [
   {
-    url: '/assets/aistudio/Carousel-01_62db3fd6.JPG',
+    url: '/assets/aistudio/MIN_1978_Original_fb5ba9f5.jpeg',
     caption: 'Đặng Long Vi & Trần Mỹ Quỳnh',
     category: 'Khoảnh khắc 01',
   },
   {
-    url: '/assets/aistudio/Carousel-02_509080cc.JPG',
+    url: '/assets/aistudio/MIN_1761_Original_0c4020af.jpeg',
     caption: 'Đặng Long Vi & Trần Mỹ Quỳnh',
     category: 'Khoảnh khắc 02',
   },
   {
-    url: '/assets/aistudio/Carousel-03_8833b15d.JPG',
+    url: '/assets/aistudio/MIN_1689_Original_e3189cb5.jpeg',
     caption: 'Đặng Long Vi & Trần Mỹ Quỳnh',
     category: 'Khoảnh khắc 03',
   },
   {
-    url: '/assets/aistudio/Carousel-04_08495081.JPG',
+    url: '/assets/aistudio/MIN_1591_Original_1e070ffb.jpeg',
     caption: 'Đặng Long Vi & Trần Mỹ Quỳnh',
     category: 'Khoảnh khắc 04',
+  },
+  {
+    url: '/assets/aistudio/MIN_2120_Original_8833b15d.jpeg',
+    caption: 'Đặng Long Vi & Trần Mỹ Quỳnh',
+    category: 'Khoảnh khắc 05',
+  },
+  {
+    url: '/assets/aistudio/MIN_2126_Original_08495081.jpeg',
+    caption: 'Đặng Long Vi & Trần Mỹ Quỳnh',
+    category: 'Khoảnh khắc 06',
+  },
+  {
+    url: '/assets/aistudio/MIN_1515_Original_5b0bf2a7.jpeg',
+    caption: 'Đặng Long Vi & Trần Mỹ Quỳnh',
+    category: 'Khoảnh khắc 07',
   },
 ];
 
