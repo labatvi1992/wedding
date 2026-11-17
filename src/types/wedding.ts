@@ -65,6 +65,7 @@ export interface WeddingConfig {
   googleMapsUrl: string;
   googleMapsEmbedUrl?: string;
   googleSheetUrl: string;
+  googleSheetWebAppUrl?: string;
   backgroundMusicUrl: string;
 }
 

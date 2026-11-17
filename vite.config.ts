@@ -1,11 +1,18 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig} from 'vite';
+import {defineConfig, loadEnv} from 'vite';
 
-export default defineConfig(() => {
+export default defineConfig(({mode}) => {
+  const env = loadEnv(mode, process.cwd(), '');
   return {
     plugins: [react(), tailwindcss()],
+    envPrefix: ['VITE_', 'GOOGLE_SHEET_'],
+    define: {
+      'process.env.GOOGLE_SHEET_WEB_APP_URL': JSON.stringify(
+        env.GOOGLE_SHEET_WEB_APP_URL || env.VITE_GOOGLE_SHEET_WEB_APP_URL || ''
+      ),
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
@@ -20,3 +27,4 @@ export default defineConfig(() => {
     },
   };
 });
+

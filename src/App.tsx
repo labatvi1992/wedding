@@ -49,12 +49,19 @@ const detectInitialView = (): 'invitation' | 'management' | 'setup' => {
 export default function App() {
   const [view, setView] = useState<'invitation' | 'management' | 'setup'>(detectInitialView);
 
-  // Wedding Configuration state (prioritize code constants in INITIAL_WEDDING_CONFIG)
+  // Wedding Configuration state (prioritize code constants in INITIAL_WEDDING_CONFIG, keep saved Sheet URLs)
   const [config, setConfig] = useState<WeddingConfig>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.CONFIG);
       if (saved) {
-        return { ...JSON.parse(saved), ...INITIAL_WEDDING_CONFIG };
+        const parsed = JSON.parse(saved);
+        return {
+          ...parsed,
+          ...INITIAL_WEDDING_CONFIG,
+          googleSheetUrl: parsed.googleSheetUrl || INITIAL_WEDDING_CONFIG.googleSheetUrl,
+          googleSheetWebAppUrl:
+            INITIAL_WEDDING_CONFIG.googleSheetWebAppUrl || parsed.googleSheetWebAppUrl || '',
+        };
       }
       return INITIAL_WEDDING_CONFIG;
     } catch {
@@ -257,11 +264,13 @@ export default function App() {
           config={config}
           guests={guests}
           onUpdateGuests={handleUpdateGuests}
+          onUpdateConfig={handleUpdateConfig}
           onBackToHome={handleNavigateToHomeWithGuest}
         />
       ) : view === 'invitation' ? (
         <WeddingInvitationFeed
           config={config}
+          guests={guests}
           currentGuest={currentGuest}
           wishes={wishes}
           onSaveRsvp={handleSaveRsvp}

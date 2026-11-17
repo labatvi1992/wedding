@@ -1,23 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Link2,
   Copy,
   Check,
   ExternalLink,
   Plus,
-  Trash2,
   ArrowLeft,
   Sparkles,
   UserPlus,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Guest, WeddingConfig } from '../types/wedding';
+import {
+  buildSheetRowPayload,
+  fetchGuestsFromGoogleSheet,
+  resolveGoogleSheetWebhookUrl,
+  submitRowToGoogleSheet,
+} from '../utils/googleSheetSync';
 
 interface SetupGuestLinkPageProps {
   config: WeddingConfig;
   guests: Guest[];
   onUpdateGuests: (guests: Guest[]) => void;
+  onUpdateConfig?: (config: WeddingConfig) => void;
   onBackToHome: (guestName?: string) => void;
 }
+
+const PAGE_SIZE = 20;
 
 export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
   config,
@@ -28,6 +39,12 @@ export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
   const [inviteeName, setInviteeName] = useState('Quý khách');
   const [copiedCurrent, setCopiedCurrent] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [sheetGuests, setSheetGuests] = useState<Guest[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const webhookUrl = resolveGoogleSheetWebhookUrl(config);
 
   const buildInviteUrl = (name: string) => {
     const trimmed = name.trim();
@@ -49,32 +66,89 @@ export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
     }
   };
 
-  const handleSaveToGuestList = (e: React.FormEvent) => {
+  // Synchronize guest rows from GOOGLE_SHEET_WEB_APP_URL
+  const syncFromGoogleSheet = useCallback(async () => {
+    if (!webhookUrl) {
+      setSheetGuests([]);
+      return;
+    }
+
+    setIsSyncing(true);
+    setSyncMessage(null);
+    const fetched = await fetchGuestsFromGoogleSheet(webhookUrl);
+    setIsSyncing(false);
+
+    if (fetched !== null) {
+      setSheetGuests(fetched);
+      if (fetched.length > 0) {
+        onUpdateGuests(fetched);
+      }
+    } else {
+      setSyncMessage('Không thể tải dữ liệu từ Google Sheet. Đang hiển thị dữ liệu hiện có.');
+    }
+  }, [webhookUrl, onUpdateGuests]);
+
+  useEffect(() => {
+    syncFromGoogleSheet();
+  }, [syncFromGoogleSheet]);
+
+  // Active list displayed: strictly synced from Google Sheet when GOOGLE_SHEET_WEB_APP_URL is present
+  const displayedGuests = webhookUrl ? (sheetGuests.length > 0 ? sheetGuests : guests) : [];
+
+  const totalPages = Math.max(1, Math.ceil(displayedGuests.length / PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIdx = (safeCurrentPage - 1) * PAGE_SIZE;
+  const paginatedGuests = displayedGuests.slice(startIdx, startIdx + PAGE_SIZE);
+
+  const handleSaveToGuestList = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = inviteeName.trim();
     if (!trimmed) return;
 
-    const existing = guests.find(
-      (g) => g.name.toLowerCase() === trimmed.toLowerCase()
-    );
-    if (!existing) {
+    handleCopyUrl(buildInviteUrl(trimmed));
+
+    if (!webhookUrl) {
+      setSyncMessage(
+        'Đã sao chép link thiệp! (Chưa có biến môi trường GOOGLE_SHEET_WEB_APP_URL nên không lưu vào Google Sheet)'
+      );
+      return;
+    }
+
+    setIsSyncing(true);
+    setSyncMessage(null);
+    const nextStt = displayedGuests.length + 1;
+    const payload = buildSheetRowPayload({
+      stt: nextStt,
+      name: trimmed,
+      status: 'attending',
+      attendeesCount: 1,
+    });
+
+    const ok = await submitRowToGoogleSheet(webhookUrl, payload);
+    if (ok) {
       const newGuest: Guest = {
-        id: `g-${Date.now()}`,
+        id: `sheet-${nextStt}-${Date.now()}`,
         name: trimmed,
         relationship: 'Khách quý',
         group: 'Bạn Chú rể',
         phone: '',
-        status: 'pending',
+        status: 'attending',
         attendeesCount: 1,
         customSlug: encodeURIComponent(trimmed),
       };
-      onUpdateGuests([newGuest, ...guests]);
-    }
-    handleCopyUrl(buildInviteUrl(trimmed));
-  };
+      const updated = [...displayedGuests, newGuest];
+      setSheetGuests(updated);
+      onUpdateGuests(updated);
+      setCurrentPage(Math.ceil(updated.length / PAGE_SIZE));
 
-  const handleRemoveGuest = (id: string) => {
-    onUpdateGuests(guests.filter((g) => g.id !== id));
+      // Re-sync after a brief delay so Google Sheet's latest rows are reflected
+      setTimeout(() => {
+        syncFromGoogleSheet();
+      }, 1200);
+    } else {
+      setSyncMessage('Không thể lưu vào Google Sheet. Vui lòng kiểm tra lại GOOGLE_SHEET_WEB_APP_URL.');
+    }
+    setIsSyncing(false);
   };
 
   return (
@@ -176,7 +250,8 @@ export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
               <button
                 type="submit"
-                className="w-full py-3 px-4 rounded-2xl bg-stone-900 hover:bg-stone-800 text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                disabled={isSyncing}
+                className="w-full py-3 px-4 rounded-2xl bg-stone-900 hover:bg-stone-800 disabled:opacity-60 text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>Lưu vào danh sách &amp; Chép link</span>
@@ -191,78 +266,177 @@ export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
                 <span>Mở thiệp với tên này</span>
               </button>
             </div>
+
+            {syncMessage && (
+              <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
+                {syncMessage}
+              </p>
+            )}
           </form>
         </div>
 
-        {/* Saved Guest Links List */}
+        {/* Synchronized Paginated Guest List (20 rows per page) from Google Sheet */}
         <div className="bg-white rounded-3xl shadow-sm border border-stone-200/90 p-6 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <h2 className="text-sm sm:text-base font-bold text-stone-900 flex items-center gap-2">
               <Plus className="w-4 h-4 text-[#721319]" />
-              <span>Danh sách liên kết khách mời đã tạo ({guests.length})</span>
+              <span>
+                Danh sách khách mời đồng bộ Google Sheet ({displayedGuests.length})
+              </span>
             </h2>
+
+            {webhookUrl && (
+              <button
+                type="button"
+                onClick={syncFromGoogleSheet}
+                disabled={isSyncing}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-medium cursor-pointer transition-colors shrink-0"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span>{isSyncing ? 'Đang đồng bộ...' : 'Đồng bộ'}</span>
+              </button>
+            )}
           </div>
 
-          <div className="divide-y divide-stone-100 max-h-96 overflow-y-auto pr-1">
-            {guests.map((guest) => {
-              const guestUrl = buildInviteUrl(guest.name);
-              const isCopied = copiedId === guest.id;
-              return (
-                <div
-                  key={guest.id}
-                  className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-stone-900 truncate">
-                      {guest.name}
-                    </p>
-                    <p className="text-[11px] text-stone-400 font-mono truncate">
-                      {guestUrl}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleCopyUrl(guestUrl, guest.id)}
-                      className="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-medium flex items-center gap-1 cursor-pointer transition-colors"
-                    >
-                      {isCopied ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          <span className="text-emerald-700">Đã chép</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5" />
-                          <span>Chép link</span>
-                        </>
-                      )}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => onBackToHome(guest.name)}
-                      className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-[#721319] text-xs font-medium flex items-center gap-1 cursor-pointer transition-colors"
-                      title="Mở xem thiệp của khách này"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                      <span>Xem</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveGuest(guest.id)}
-                      className="p-1.5 rounded-xl text-stone-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer transition-colors"
-                      title="Xóa"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+          {!webhookUrl ? (
+            <div className="p-5 rounded-2xl bg-stone-50 border border-stone-200 text-center space-y-1">
+              <p className="text-xs sm:text-sm font-semibold text-stone-700">
+                Chưa thiết lập biến môi trường <code className="text-[#721319]">GOOGLE_SHEET_WEB_APP_URL</code>
+              </p>
+              <p className="text-xs text-stone-500">
+                Khi biến môi trường <code>GOOGLE_SHEET_WEB_APP_URL</code> được cấu hình, danh sách khách mời từ Google Sheet sẽ tự động đồng bộ và hiển thị phân trang (20 dòng/trang) tại đây.
+              </p>
+            </div>
+          ) : displayedGuests.length === 0 ? (
+            <div className="p-5 rounded-2xl bg-stone-50 border border-stone-200 text-center text-xs text-stone-500">
+              {isSyncing
+                ? 'Đang tải danh sách từ Google Sheet...'
+                : 'Chưa có dữ liệu khách mời trên Google Sheet.'}
+            </div>
+          ) : (
+            <>
+              {/* 4-Column Synchronized Table (STT | Họ tên | Vote | Số lượng | Thao tác) */}
+              <div className="rounded-2xl border border-stone-200 overflow-hidden">
+                <div className="grid grid-cols-12 bg-stone-100 border-b border-stone-200 py-2.5 px-3 text-xs font-bold text-stone-700 items-center">
+                  <div className="col-span-1">STT</div>
+                  <div className="col-span-4">Họ tên</div>
+                  <div className="col-span-3">Vote</div>
+                  <div className="col-span-1 text-center">SL</div>
+                  <div className="col-span-3 text-right">Liên kết</div>
                 </div>
-              );
-            })}
-          </div>
+
+                <div className="divide-y divide-stone-100 text-xs">
+                  {paginatedGuests.map((guest, idx) => {
+                    const stt = startIdx + idx + 1;
+                    const guestUrl = buildInviteUrl(guest.name);
+                    const isCopied = copiedId === guest.id;
+                    const voteLabel =
+                      guest.status === 'declined'
+                        ? 'Bận không tới được'
+                        : guest.status === 'attending'
+                        ? 'Sẽ tham dự'
+                        : 'Chưa xác nhận';
+                    const countVal =
+                      guest.status === 'declined' ? 0 : guest.attendeesCount || 1;
+
+                    return (
+                      <div
+                        key={guest.id || stt}
+                        className="grid grid-cols-12 py-2.5 px-3 items-center text-stone-800 hover:bg-stone-50/80 transition-colors"
+                      >
+                        <div className="col-span-1 font-mono font-semibold text-stone-500">
+                          {stt}
+                        </div>
+                        <div className="col-span-4 font-semibold text-stone-900 truncate pr-2">
+                          {guest.name}
+                        </div>
+                        <div className="col-span-3 pr-1">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-semibold ${
+                              guest.status === 'declined'
+                                ? 'bg-stone-200 text-stone-700'
+                                : guest.status === 'attending'
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-amber-50 text-amber-700'
+                            }`}
+                          >
+                            {voteLabel}
+                          </span>
+                        </div>
+                        <div className="col-span-1 text-center font-mono font-bold">
+                          {countVal}
+                        </div>
+                        <div className="col-span-3 flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyUrl(guestUrl, guest.id)}
+                            className="px-2 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                            title="Sao chép link thiệp"
+                          >
+                            {isCopied ? (
+                              <Check className="w-3 h-3 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                            <span className="hidden sm:inline">
+                              {isCopied ? 'Đã chép' : 'Chép'}
+                            </span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => onBackToHome(guest.name)}
+                            className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-[#721319] text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                            title="Mở xem thiệp của khách này"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            <span className="hidden sm:inline">Xem</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Pagination Controls (20 rows per page) */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 text-xs text-stone-600">
+                <span>
+                  Hiển thị dòng{' '}
+                  <strong>
+                    {startIdx + 1}&ndash;{Math.min(startIdx + PAGE_SIZE, displayedGuests.length)}
+                  </strong>{' '}
+                  trong tổng số <strong>{displayedGuests.length}</strong> khách (20 dòng/trang)
+                </span>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    disabled={safeCurrentPage <= 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="p-1.5 rounded-lg border border-stone-200 bg-stone-50 hover:bg-stone-100 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                    aria-label="Trang trước"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  <span className="px-2.5 py-1 font-semibold text-stone-800">
+                    Trang {safeCurrentPage} / {totalPages}
+                  </span>
+
+                  <button
+                    type="button"
+                    disabled={safeCurrentPage >= totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="p-1.5 rounded-lg border border-stone-200 bg-stone-50 hover:bg-stone-100 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                    aria-label="Trang sau"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

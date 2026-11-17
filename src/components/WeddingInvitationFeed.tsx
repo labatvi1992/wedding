@@ -24,9 +24,16 @@ import { HeroSection } from './HeroSection';
 import { CoupleCalendarCountdownSection } from './CoupleCalendarCountdownSection';
 import { InvitationCardSection } from './InvitationCardSection';
 import { WeddingTimelineSection, WeddingClosingSection } from './WeddingTimelineSection';
+import {
+  buildSheetRowPayload,
+  resolveGoogleSheetWebhookUrl,
+  submitRowToGoogleSheet,
+  SheetRowPayload,
+} from '../utils/googleSheetSync';
 
 interface WeddingInvitationFeedProps {
   config: WeddingConfig;
+  guests?: Guest[];
   currentGuest: Guest | null;
   wishes: GuestWish[];
   onSaveRsvp: (guestData: Partial<Guest>, wishContent?: string) => void;
@@ -36,6 +43,7 @@ interface WeddingInvitationFeedProps {
 
 export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
   config,
+  guests = [],
   currentGuest,
   wishes,
   onSaveRsvp,
@@ -61,6 +69,9 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
   const [attendeesCount, setAttendeesCount] = useState<number>(currentGuest?.attendeesCount || 1);
   const [rsvpWish, setRsvpWish] = useState<string>(currentGuest?.wish || '');
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
+  const [isSubmittingRsvp, setIsSubmittingRsvp] = useState(false);
+  const [rsvpError, setRsvpError] = useState<string | null>(null);
+  const [lastSubmittedRow, setLastSubmittedRow] = useState<SheetRowPayload | null>(null);
 
   React.useEffect(() => {
     if (currentGuest?.name) {
@@ -208,7 +219,39 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
 
   const handleRsvpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!guestName.trim()) return;
+    if (!guestName.trim() || isSubmittingRsvp) return;
+
+    setRsvpError(null);
+    const webhookUrl = resolveGoogleSheetWebhookUrl(config);
+    if (!webhookUrl) {
+      setRsvpError(
+        'Chưa cấu hình biến môi trường GOOGLE_SHEET_WEB_APP_URL nên không thể lưu vào Google Sheet.'
+      );
+      return;
+    }
+
+    setIsSubmittingRsvp(true);
+
+    // Calculate auto-incremented STT based on existing confirmed guests
+    const confirmedCount = guests.filter(
+      (g) => g.status === 'attending' || g.status === 'declined'
+    ).length;
+    const nextStt = confirmedCount + 1;
+
+    const rowPayload = buildSheetRowPayload({
+      stt: nextStt,
+      name: guestName.trim(),
+      status: attendanceStatus,
+      attendeesCount: attendanceStatus === 'attending' ? attendeesCount : 0,
+    });
+
+    const ok = await submitRowToGoogleSheet(webhookUrl, rowPayload);
+    setIsSubmittingRsvp(false);
+
+    if (!ok) {
+      setRsvpError('Không thể kết nối tới Google Sheet. Vui lòng kiểm tra lại GOOGLE_SHEET_WEB_APP_URL.');
+      return;
+    }
 
     onSaveRsvp(
       {
@@ -222,27 +265,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
       rsvpWish.trim()
     );
 
-    if (config.googleSheetUrl && config.googleSheetUrl.includes('/exec')) {
-      try {
-        await fetch(config.googleSheetUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            timestamp: new Date().toISOString(),
-            name: guestName.trim(),
-            phone: guestPhone.trim(),
-            group: guestGroup,
-            status: attendanceStatus === 'attending' ? 'Tham gia' : 'Không tham gia',
-            attendeesCount: attendanceStatus === 'attending' ? attendeesCount : 0,
-            wish: rsvpWish.trim(),
-          }),
-        });
-      } catch {
-        // Ignore network error
-      }
-    }
-
+    setLastSubmittedRow(rowPayload);
     setRsvpSubmitted(true);
     handleHeartReaction();
   };
@@ -416,7 +439,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                 </div>
 
                 {rsvpSubmitted ? (
-                  <div className="py-6 text-center space-y-4">
+                  <div className="py-5 text-center space-y-4">
                     <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-500 text-emerald-600 mx-auto flex items-center justify-center">
                       <CheckCircle2 className="w-8 h-8" />
                     </div>
@@ -424,22 +447,37 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                       Cảm Ơn {guestName}!
                     </h3>
                     <p className="text-xs sm:text-sm text-stone-600 max-w-xs mx-auto leading-relaxed">
-                      Phản hồi của bạn đã được lưu và đồng bộ vào danh sách của{' '}
+                      Thông tin xác nhận của bạn đã được ghi nhận vào{' '}
+                      <strong>Danh sách mời cưới</strong> của{' '}
                       <strong>{config.groomName} &amp; {config.brideName}</strong>.
                     </p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
-                      {config.googleSheetUrl && (
-                        <a
-                          href={config.googleSheetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold flex items-center gap-1.5"
-                        >
-                          <FileSpreadsheet className="w-4 h-4" />
-                          <span>Xem Bảng Danh Sách</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
+
+                    {lastSubmittedRow && (
+                      <div className="mx-auto max-w-sm rounded-2xl border border-stone-200 bg-stone-50/90 overflow-hidden text-xs">
+                        <div className="grid grid-cols-12 bg-stone-100 border-b border-stone-200 py-2 px-3 font-semibold text-stone-600 text-left">
+                          <div className="col-span-2">STT</div>
+                          <div className="col-span-5">Họ tên</div>
+                          <div className="col-span-3">Vote</div>
+                          <div className="col-span-2 text-right">Số lượng</div>
+                        </div>
+                        <div className="grid grid-cols-12 py-2.5 px-3 text-stone-800 items-center text-left">
+                          <div className="col-span-2 font-mono font-semibold text-[#721319]">
+                            {lastSubmittedRow.STT}
+                          </div>
+                          <div className="col-span-5 font-medium truncate pr-1">
+                            {lastSubmittedRow['Họ tên']}
+                          </div>
+                          <div className="col-span-3 text-[11px] font-semibold text-emerald-700">
+                            {lastSubmittedRow.Vote}
+                          </div>
+                          <div className="col-span-2 text-right font-mono font-bold">
+                            {lastSubmittedRow['Số lượng']}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
                       <button
                         onClick={() => setRsvpSubmitted(false)}
                         className="text-xs text-stone-500 underline py-1.5 cursor-pointer"
@@ -513,11 +551,18 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                       </div>
                     )}
 
+                    {rsvpError && (
+                      <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium">
+                        {rsvpError}
+                      </div>
+                    )}
+
                     <button
                       type="submit"
-                      className="w-full py-3 rounded-xl bg-[#721319] hover:bg-[#5a0e13] text-white font-semibold text-xs sm:text-sm shadow-md cursor-pointer transition-colors"
+                      disabled={isSubmittingRsvp}
+                      className="w-full py-3 rounded-xl bg-[#721319] hover:bg-[#5a0e13] disabled:opacity-60 text-white font-semibold text-xs sm:text-sm shadow-md cursor-pointer transition-colors"
                     >
-                      Gửi Xác Nhận Tham Dự
+                      {isSubmittingRsvp ? 'Đang gửi xác nhận...' : 'Gửi Xác Nhận Tham Dự'}
                     </button>
                   </form>
                 )}

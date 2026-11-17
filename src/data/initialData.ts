@@ -22,6 +22,15 @@ export const BRIDE_FULL_NAME = 'Trần Mỹ Quỳnh';
 export const GROOM_SHORT_NAME = 'Long Vi';
 export const BRIDE_SHORT_NAME = 'Mỹ Quỳnh';
 
+// 5. Biến môi trường GOOGLE_SHEET_WEB_APP_URL để đồng bộ 2 chiều (GET/POST) với Google Sheet "Danh sách mời cưới"
+// Cột ánh xạ: STT (tự tăng) | Họ tên | Vote | Số lượng
+const metaEnv = (import.meta as unknown as { env?: Record<string, string> }).env;
+export const GOOGLE_SHEET_WEB_APP_URL =
+  metaEnv?.GOOGLE_SHEET_WEB_APP_URL ||
+  metaEnv?.VITE_GOOGLE_SHEET_WEB_APP_URL ||
+  (typeof process !== 'undefined' && process.env?.GOOGLE_SHEET_WEB_APP_URL) ||
+  '';
+
 export const DEMO_IMAGES = {
   heroCouple: '/assets/aistudio/01-Hinh-Nen_8e97fd58.JPG',
   bridePortrait: '/assets/aistudio/02-Co-Dau_2e27414f.JPG',
@@ -66,8 +75,9 @@ export const INITIAL_WEDDING_CONFIG: WeddingConfig = {
   venueHall: 'Trung tâm tiệc cưới Ngọc Bích Palace',
   venueAddress: 'Đường Nguyễn Lữ - Xã Bình Dương - Tỉnh Gia Lai',
   googleMapsUrl: 'https://maps.app.goo.gl/dU7A8hXzqtGbRcP98?g_st=ic',
-  googleMapsEmbedUrl: 'https://maps.google.com/maps?q=73RP%2BHQG%20Nh%C3%A0%20h%C3%A0ng%20ti%E1%BB%87c%20c%C6%B0%E1%BB%9Bi%20Ng%E1%BB%8Dc%20B%C3%ADch%20Palace,%20B%C3%ACnh%20D%C6%B0%C6%A1ng,%20Gia%20Lai&t=&z=16&ie=UTF8&iwloc=&output=embed',
-  googleSheetUrl: 'https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit?usp=sharing',
+  googleMapsEmbedUrl: 'https://maps.google.com/maps?q=73RP%2BHQG%20Nh%C3%A0%20h%C3%A0ng%20ti%E1%BB%87c%C6%B0%E1%BB%9Bi%20Ng%E1%BB%8Dc%20B%C3%ADch%20Palace,%20B%C3%ACnh%20D%C6%B0%C6%A1ng,%20Gia%20Lai&t=&z=16&ie=UTF8&iwloc=&output=embed',
+  googleSheetUrl: GOOGLE_SHEET_WEB_APP_URL,
+  googleSheetWebAppUrl: GOOGLE_SHEET_WEB_APP_URL,
   backgroundMusicUrl: '/assets/aistudio/love-paradise.mp3',
 };
 
