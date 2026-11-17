@@ -27,7 +27,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config }) => {
         />
 
         {/* Soft top-left & bottom gradient overlays for script legibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/75 via-transparent to-white/95 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-transparent to-white/50 pointer-events-none" />
 
         {/* Top-left "Ngày Chung Đôi" Script Title */}
         <motion.div
@@ -36,7 +36,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config }) => {
           transition={{ duration: 0.9, delay: 0.25, ease: 'easeOut' }}
           className="absolute top-6 sm:top-8 left-5 sm:left-8 z-10 pointer-events-none"
         >
-          <h2 className="font-calligraphy text-[42px] sm:text-[52px] text-stone-900 leading-none tracking-normal drop-shadow-[0_2px_8px_rgba(255,255,255,0.95)]">
+          <h2 className="font-calligraphy text-[42px] sm:text-[52px] text-black leading-none tracking-normal drop-shadow-[0_2px_8px_rgba(255,255,255,0.95)]">
             Ngày Chung Đôi
           </h2>
         </motion.div>
@@ -49,7 +49,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config }) => {
             transition={{ duration: 0.9, delay: 0.4, ease: 'easeOut' }}
             className="text-left"
           >
-            <h1 className="font-calligraphy text-[42px] sm:text-[42px] text-stone-900 leading-none drop-shadow-[0_2px_6px_rgba(255,255,255,0.95)]">
+            <h1 className="font-calligraphy text-[42px] sm:text-[42px] text-black leading-none drop-shadow-[0_2px_6px_rgba(255,255,255,0.95)]">
               {heroGroom}
             </h1>
           </motion.div>
@@ -60,7 +60,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config }) => {
             transition={{ duration: 0.7, delay: 0.6, ease: 'easeOut' }}
             className="pl-16 sm:pl-24 my-0.5"
           >
-            <span className="font-calligraphy text-[36px] sm:text-[42px] text-stone-800 leading-none">
+            <span className="font-calligraphy text-[36px] sm:text-[42px] text-black leading-none drop-shadow-[0_2px_6px_rgba(255,255,255,0.95)]">
               &amp;
             </span>
           </motion.div>
@@ -71,7 +71,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ config }) => {
             transition={{ duration: 0.9, delay: 0.75, ease: 'easeOut' }}
             className="text-center pl-14 sm:pl-20 -mt-1"
           >
-            <span className="block font-calligraphy text-[42px] sm:text-[42px] text-stone-900 leading-none drop-shadow-[0_2px_6px_rgba(255,255,255,0.95)]">
+            <span className="block font-calligraphy text-[42px] sm:text-[42px] text-black leading-none drop-shadow-[0_2px_6px_rgba(255,255,255,0.95)]">
               {heroBride}
             </span>
           </motion.div>

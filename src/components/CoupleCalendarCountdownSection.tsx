@@ -39,13 +39,9 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
         transition={{ duration: 0.75, ease: 'easeOut' }}
         className="max-w-md mx-auto mb-10"
       >
-        {/* Header: "Ngày chung đôi" & "Tháng 12" */}
-        <div className="flex items-start justify-between mb-3 px-2">
-          <div className="font-calligraphy text-[31px] sm:text-[36px] text-stone-800 leading-[1.05]">
-            <span className="block">Ngày chung</span>
-            <span className="block pl-2">đôi</span>
-          </div>
-          <div className="font-serif-editorial text-[30px] sm:text-[34px] text-stone-800 tracking-wide pt-1 pr-2">
+        {/* Header: "Ngày chung đôi" & "Tháng 12" on the same single line */}
+        <div className="flex items-baseline justify-between gap-2 mb-4 px-2">
+          <div className="font-serif-editorial text-[26px] sm:text-[30px] text-stone-800 tracking-wide leading-tight whitespace-nowrap">
             Tháng 12
           </div>
         </div>

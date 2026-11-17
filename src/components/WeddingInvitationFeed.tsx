@@ -22,9 +22,8 @@ import { Guest, GuestWish, WeddingConfig } from '../types/wedding';
 import { AudioDiscButton } from './AudioDiscButton';
 import { HeroSection } from './HeroSection';
 import { CoupleCalendarCountdownSection } from './CoupleCalendarCountdownSection';
-import { LoveStorySection } from './LoveStorySection';
 import { InvitationCardSection } from './InvitationCardSection';
-import { WeddingTimelineSection } from './WeddingTimelineSection';
+import { WeddingTimelineSection, WeddingClosingSection } from './WeddingTimelineSection';
 
 interface WeddingInvitationFeedProps {
   config: WeddingConfig;
@@ -289,7 +288,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#721319] text-white text-xs font-medium shadow-lg whitespace-nowrap"
+              className="fixed top-16 left-1/2 -translate-x-1/2 z-[110] px-4 py-2 rounded-full bg-[#721319] text-white text-xs font-medium shadow-lg whitespace-nowrap"
             >
               {toastMsg}
             </motion.div>
@@ -302,19 +301,22 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
         {/* 2. October Calendar + Bride Card + Vertical Countdown + Groom Card */}
         <CoupleCalendarCountdownSection config={config} />
 
-        {/* 3. Tilted Spiral Notebook Cards: OUR LOVE STORY */}
-        <LoveStorySection />
+        {/* 3. Personalized Invitation Callout + "Thời gian" Timeline (moved into Love Story position) */}
+        <WeddingTimelineSection
+          config={config}
+          guestName={currentGuest?.name}
+          onOpenRsvpModal={() => setActiveSheet('rsvp')}
+        />
 
-        {/* 4. Formal Invitation + Embedded Google Map + Celebration Portrait */}
+        {/* 4. Formal Invitation + Embedded Google Map + 3D Photo Carousel */}
         <InvitationCardSection
           config={config}
           onScrollToRsvp={() => setActiveSheet('rsvp')}
         />
 
-        {/* 5. Vertical Numbered Timeline + RSVP Note + Closing Portrait */}
-        <WeddingTimelineSection
+        {/* 5. Closing RSVP Note + Closing Portrait */}
+        <WeddingClosingSection
           config={config}
-          guestName={currentGuest?.name}
           onOpenRsvpModal={() => setActiveSheet('rsvp')}
         />
 
@@ -381,7 +383,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
         {/* Bottom Sheet Modal for Xác Nhận Tham Dự */}
         <AnimatePresence>
           {activeSheet !== 'none' && (
-            <div className="fixed inset-0 z-50 flex items-end justify-center">
+            <div className="fixed inset-0 z-[100] flex items-end justify-center">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -449,7 +451,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                 ) : (
                   <form onSubmit={handleRsvpSubmit} className="space-y-4 text-left">
                     <div>
-                      <label className="block text-xs font-semibold text-stone-700 mb-1">
+                      <label className="block text-xs font-semibold text-stone-700 mb-1.5">
                         Họ và tên của bạn *
                       </label>
                       <input
@@ -457,40 +459,9 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                         required
                         value={guestName}
                         onChange={(e) => setGuestName(e.target.value)}
-                        placeholder="Nhập tên của bạn..."
+                        placeholder="Nhập họ và tên của bạn..."
                         className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 text-xs sm:text-sm focus:bg-white focus:outline-none focus:border-[#721319]"
                       />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-stone-700 mb-1">
-                          Số điện thoại
-                        </label>
-                        <input
-                          type="tel"
-                          value={guestPhone}
-                          onChange={(e) => setGuestPhone(e.target.value)}
-                          placeholder="Số điện thoại..."
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 text-xs sm:text-sm focus:bg-white focus:outline-none focus:border-[#721319]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-stone-700 mb-1">
-                          Khách của
-                        </label>
-                        <select
-                          value={guestGroup}
-                          onChange={(e) => setGuestGroup(e.target.value as Guest['group'])}
-                          className="w-full px-3 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 text-xs sm:text-sm focus:outline-none focus:border-[#721319]"
-                        >
-                          <option value="Nhà gái">Khách Nhà Gái</option>
-                          <option value="Nhà trai">Khách Nhà Trai</option>
-                          <option value="Bạn Cô dâu">Bạn Cô Dâu</option>
-                          <option value="Bạn Chú rể">Bạn Chú Rể</option>
-                          <option value="Đồng nghiệp">Đồng Nghiệp</option>
-                        </select>
-                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2.5">

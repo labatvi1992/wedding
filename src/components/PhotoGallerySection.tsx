@@ -73,7 +73,7 @@ export const PhotoGallerySection: React.FC = () => {
       const scale = Math.max(0.78, 1 - absDiff * 0.16);
       const opacity = Math.max(0.46, Math.min(1, 1 - absDiff * 0.36));
       const brightness = Math.max(0.75, 1.02 - absDiff * 0.2);
-      const zIndex = Math.round(1000 - absDiff * 300);
+      const zIndex = Math.round(30 - absDiff * 10);
 
       el.style.transform = `perspective(1100px) translate3d(${translateX.toFixed(2)}px, 0px, 0px) rotateY(${clampedRotateY.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
       el.style.opacity = opacity.toFixed(3);
@@ -260,7 +260,7 @@ export const PhotoGallerySection: React.FC = () => {
     >
       {/* Section Heading */}
       <div className="text-center mb-4 px-4">
-        <h3 className="font-calligraphy text-[36px] sm:text-[42px] text-[#721319] leading-tight">
+        <h3 className="font-calligraphy text-[32px] sm:text-[36px] text-[#721319] leading-tight">
           Khoảnh khắc hạnh phúc
         </h3>
         <p className="font-serif-editorial italic text-xs sm:text-sm text-stone-500">
@@ -268,8 +268,8 @@ export const PhotoGallerySection: React.FC = () => {
         </p>
       </div>
 
-      {/* 3D Coverflow Stage with +20px vertical margin/padding */}
-      <div className="relative w-full glide-3d-stage my-5">
+      {/* 3D Coverflow Stage with +20px vertical margin/padding and isolated stacking context */}
+      <div className="relative z-10 isolate w-full glide-3d-stage my-5">
         <div
           ref={stageRef}
           onPointerDown={handlePointerDown}
@@ -355,7 +355,7 @@ export const PhotoGallerySection: React.FC = () => {
       {/* Fullscreen Lightbox Modal when clicking the active slide */}
       {selectedIdx !== null && (
         <div
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={() => setSelectedIdx(null)}
         >
           <button

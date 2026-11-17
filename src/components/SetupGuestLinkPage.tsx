@@ -90,10 +90,6 @@ export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
             <ArrowLeft className="w-4 h-4" />
             <span>Về trang thiệp cưới</span>
           </button>
-
-          <span className="text-xs font-medium text-stone-500">
-            Đường dẫn: <code className="text-[#721319] font-semibold">/thiet-lap</code>
-          </span>
         </div>
 
         {/* Main Generator Card */}
@@ -133,12 +129,12 @@ export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
               <span className="block text-[11px] uppercase tracking-wider text-stone-400 font-semibold">
                 Xem trước lời mời hiển thị trước mục &ldquo;Thời gian&rdquo;
               </span>
-              <p className="font-serif-editorial text-base sm:text-lg text-stone-800 leading-relaxed">
-                Mời{' '}
-                <span className="font-semibold text-[#721319] underline decoration-[#721319]/30 underline-offset-4">
-                  {inviteeName.trim() || 'Bạn'}
+              <p className="font-serif-editorial italic text-base sm:text-lg text-stone-800 leading-relaxed">
+                Trân trọng kính mời{' '}
+                <span className="font-semibold not-italic text-[#721319] underline decoration-[#721319]/35 underline-offset-4">
+                  {inviteeName.trim() || 'Quý khách'}
                 </span>{' '}
-                đến tham dự tiệc cưới để chung vui cùng gia đình
+                đến tham dự buổi tiệc rượu chung vui cùng gia đình chúng tôi.
               </p>
             </div>
 

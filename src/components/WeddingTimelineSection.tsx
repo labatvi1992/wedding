@@ -10,7 +10,6 @@ interface WeddingTimelineSectionProps {
 }
 
 export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
-  config,
   guestName,
   onOpenRsvpModal,
 }) => {
@@ -25,23 +24,44 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
   const displayGuestName = guestName?.trim() || 'Quý khách';
 
   return (
-    <section id="section-timeline" className="w-full bg-white text-stone-900 pt-10 pb-0 select-none">
+    <section id="section-timeline" className="w-full bg-white text-stone-900 pt-6 pb-8 select-none">
       <div className="px-4 sm:px-8 max-w-md mx-auto">
-        {/* Personalized Invitation Callout before "Thời gian" */}
+        {/* Formal Personalized Invitation Callout before "Thời gian" */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.7 }}
-          className="text-center mb-8 px-3 py-4 rounded-2xl bg-stone-50/90 border border-stone-200/80 shadow-2xs"
+          onClick={onOpenRsvpModal}
+          className="text-center mb-8 px-4 py-5 rounded-2xl bg-stone-50/85 border border-stone-200/80 shadow-2xs cursor-pointer group hover:border-[#721319]/30 transition-all"
+          title="Nhấn để mở biểu mẫu Xác nhận tham dự"
         >
-          <p className="font-serif-editorial text-[18px] sm:text-[20px] text-stone-800 leading-relaxed">
-            Mời{' '}
-            <span className="font-semibold text-[#721319] underline decoration-[#721319]/30 underline-offset-4">
+          {/* Subtle ornamental divider */}
+          <div className="flex items-center justify-center gap-2.5 mb-2.5">
+            <span className="h-px w-10 bg-stone-300 group-hover:bg-[#721319]/40 transition-colors" />
+            <span className="text-[#721319] text-xs leading-none">✦</span>
+            <span className="h-px w-10 bg-stone-300 group-hover:bg-[#721319]/40 transition-colors" />
+          </div>
+
+          <p className="font-serif-editorial italic text-[18px] sm:text-[20px] text-stone-800 leading-[1.65]">
+            Trân trọng kính mời{' '}
+            <span className="font-semibold not-italic text-[#721319] underline decoration-[#721319]/35 underline-offset-4">
               {displayGuestName}
             </span>{' '}
-            đến tham dự tiệc cưới để chung vui cùng gia đình
+            đến tham dự buổi tiệc rượu chung vui cùng gia đình chúng tôi.
           </p>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenRsvpModal?.();
+            }}
+            className="mt-3 inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-sans-clean font-semibold text-[#721319] hover:text-[#540d12] underline decoration-[#721319]/45 underline-offset-4 cursor-pointer transition-colors"
+          >
+            <span>Xác nhận tham dự tại đây</span>
+            <span aria-hidden="true">→</span>
+          </button>
         </motion.div>
 
         {/* Section Heading: "Thời gian" */}
@@ -52,7 +72,7 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
           transition={{ duration: 0.7 }}
           className="text-center mb-8"
         >
-          <h2 className="font-serif-editorial text-[40px] sm:text-[46px] text-stone-900 font-light tracking-tight">
+          <h2 className="font-calligraphy text-[32px] sm:text-[36px] text-[#721319] leading-tight">
             Thời gian
           </h2>
         </motion.div>
@@ -116,22 +136,41 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
             ))}
           </div>
         </div>
+      </div>
+    </section>
+  );
+};
 
-        {/* Closing RSVP Note matching video (0:43 - 0:46) */}
+export const WeddingClosingSection: React.FC<WeddingTimelineSectionProps> = ({
+  config,
+  onOpenRsvpModal,
+}) => {
+  return (
+    <section id="section-closing" className="w-full bg-white text-stone-900 pt-2 pb-0 select-none">
+      <div className="px-4 sm:px-8 max-w-md mx-auto">
+        {/* Formal & Polite Closing RSVP Note */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.75, delay: 0.2 }}
+          transition={{ duration: 0.75, delay: 0.15 }}
           onClick={onOpenRsvpModal}
-          className="mt-10 mb-10 text-center space-y-1.5 px-2 cursor-pointer group"
-          title="Nhấn để gửi lời chúc hoặc xác nhận tham dự"
+          className="mt-2 mb-10 text-center px-3 py-5 rounded-2xl bg-stone-50/75 border border-stone-200/80 shadow-2xs cursor-pointer group hover:border-[#721319]/30 transition-all"
+          title="Nhấn để xác nhận tham dự"
         >
-          <p className="font-serif-editorial text-[13px] sm:text-[14.5px] uppercase tracking-[0.04em] text-stone-800 leading-relaxed group-hover:text-[#721319] transition-colors">
-            BẠN NHỚ NHẮN LẠI GIÚP MỘT TIẾNG NHÉ, ĐỂ HAI ĐỨA LO SẴN PHẦN CỖ VÀ CHỖ NGỒI CHO BẠN.
+          {/* Subtle ornamental divider */}
+          <div className="flex items-center justify-center gap-2.5 mb-3">
+            <span className="h-px w-10 bg-stone-300 group-hover:bg-[#721319]/40 transition-colors" />
+            <span className="text-[#721319] text-xs leading-none">✦</span>
+            <span className="h-px w-10 bg-stone-300 group-hover:bg-[#721319]/40 transition-colors" />
+          </div>
+
+          <p className="font-serif-editorial italic text-[17px] sm:text-[18.5px] text-stone-800 leading-[1.65] group-hover:text-stone-900 transition-colors">
+            Sự hiện diện của Quý khách là niềm vinh hạnh lớn lao đối với gia đình chúng tôi. Rất mong Quý khách dành chút thời gian xác nhận tham dự để gia đình có sự tiếp đón chu đáo và trọn vẹn nhất.
           </p>
-          <p className="font-serif-editorial text-[14px] sm:text-[15px] uppercase tracking-[0.06em] text-stone-900 font-medium">
-            TRÂN TRỌNG!
+
+          <p className="font-calligraphy text-[28px] sm:text-[32px] text-[#721319] leading-tight pt-2.5">
+            Trân trọng cảm ơn!
           </p>
         </motion.div>
       </div>
@@ -166,3 +205,4 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
     </section>
   );
 };
+
