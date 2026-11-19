@@ -70,13 +70,13 @@ test('generateZaloRSVPMessage generates accurate message for attending guests', 
     status: 'attending',
     attendeesCount: 2,
     wish: 'Chúc hai bạn trăm năm hạnh phúc!',
-    groomName: 'Thanh Huy',
-    brideName: 'Phương Thúy',
-    weddingDate: '16/11/2025',
+    groomName: 'Long Vi',
+    brideName: 'Mỹ Quỳnh',
+    weddingDate: '20/12/2026',
   });
 
   assert.ok(msg.includes('Nguyễn Văn An'));
-  assert.ok(msg.includes('Long Vi & Mỹ Quỳnh'));
+  assert.ok(msg.includes('LONG VI & MỸ QUỲNH'));
   assert.ok(msg.includes('CHẮC CHẮN SẼ THAM DỰ'));
   assert.ok(msg.includes('2 người'));
   assert.ok(msg.includes('Chúc hai bạn trăm năm hạnh phúc!'));
@@ -139,12 +139,37 @@ test('filterGuests correctly filters by search, group and status', () => {
   assert.equal(filtered3[0].id, '1');
 });
 
-test('calculateCountdown calculates days accurately', () => {
+test('calculateCountdown calculates days accurately for future dates', () => {
   const target = '2026-11-16T18:00:00';
   const fromDate = new Date('2026-11-10T18:00:00');
   const res = calculateCountdown(target, fromDate);
   assert.equal(res.days, 6);
+  assert.equal(res.hours, 0);
+  assert.equal(res.minutes, 0);
+  assert.equal(res.seconds, 0);
   assert.equal(res.isPast, false);
+});
+
+test('calculateCountdown clamps all units to 0 on or after target date', () => {
+  // Exact start of wedding day (local time)
+  const onExactDay = calculateCountdown('2026-12-20', new Date(2026, 11, 20, 0, 0, 0));
+  assert.deepEqual(onExactDay, { days: 0, hours: 0, minutes: 0, seconds: 0, isPast: true });
+
+  // Later during the wedding day
+  const duringDay = calculateCountdown('2026-12-20', new Date(2026, 11, 20, 15, 30, 45));
+  assert.deepEqual(duringDay, { days: 0, hours: 0, minutes: 0, seconds: 0, isPast: true });
+
+  // Days after the wedding day (must not roll forward to next year)
+  const afterDay = calculateCountdown('2026-12-20', new Date(2026, 11, 25, 9, 0, 0));
+  assert.deepEqual(afterDay, { days: 0, hours: 0, minutes: 0, seconds: 0, isPast: true });
+
+  // Next year after the wedding day
+  const nextYear = calculateCountdown('2026-12-20', new Date(2027, 5, 1, 12, 0, 0));
+  assert.deepEqual(nextYear, { days: 0, hours: 0, minutes: 0, seconds: 0, isPast: true });
+
+  // Invalid date input safely clamps to 0
+  const invalid = calculateCountdown('invalid-date', new Date(2026, 11, 1, 0, 0, 0));
+  assert.deepEqual(invalid, { days: 0, hours: 0, minutes: 0, seconds: 0, isPast: true });
 });
 
 test('formatGoogleSheetRow correctly structures data for Google Sheets sync', () => {

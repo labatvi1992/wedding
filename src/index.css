@@ -33,6 +33,28 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* Tactile 3D raised/embossed lettering for hero carousel overlay */
+  .hero-embossed-title {
+    color: #fffdf9;
+    text-shadow:
+      0 -0.5px 0 rgba(255, 255, 255, 0.75),
+      0 1px 0 rgba(114, 19, 25, 0.92),
+      0 2px 0 rgba(78, 11, 16, 0.88),
+      0 4px 12px rgba(0, 0, 0, 0.62),
+      0 1px 20px rgba(0, 0, 0, 0.38);
+  }
+
+  .hero-embossed-name {
+    color: #fffdf9;
+    text-shadow:
+      0 -0.5px 0 rgba(255, 255, 255, 0.8),
+      0 1px 0 #7a151c,
+      0 2px 0 #5b0d13,
+      0 3px 0 rgba(52, 7, 10, 0.86),
+      0 6px 16px rgba(0, 0, 0, 0.68),
+      0 2px 26px rgba(0, 0, 0, 0.42);
+  }
 }
 
 /* Custom paper notebook texture for OUR LOVE STORY */

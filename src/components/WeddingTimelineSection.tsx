@@ -185,7 +185,7 @@ export const WeddingClosingSection: React.FC<WeddingTimelineSectionProps> = ({
       >
         <img
           src={DEMO_IMAGES.coupleForever}
-          alt={`${config.groomName} & ${config.brideName} forever`}
+          alt={`${config.groomName} & ${config.brideName} mãi bên nhau`}
           className="w-full h-full object-cover object-center"
         />
 

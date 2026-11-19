@@ -16,6 +16,7 @@ export const CoupleCalendarCountdownSection: React.FC<CoupleCalendarCountdownSec
   const [countdown, setCountdown] = useState(() => calculateCountdown(config.weddingDate));
 
   useEffect(() => {
+    setCountdown(calculateCountdown(config.weddingDate));
     const timer = setInterval(() => {
       setCountdown(calculateCountdown(config.weddingDate));
     }, 1000);

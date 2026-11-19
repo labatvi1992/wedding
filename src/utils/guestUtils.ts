@@ -141,25 +141,36 @@ export function formatCurrency(amount: number): string {
 }
 
 /**
- * Calculate countdown days, hours, minutes, seconds
+ * Calculate countdown days, hours, minutes, seconds.
+ * Clamps all units to a minimum of 0 once the target date is reached or passed.
  */
 export function calculateCountdown(targetDateStr: string, fromDate: Date = new Date()) {
-  let target = new Date(targetDateStr).getTime();
+  const trimmed = (targetDateStr || '').trim();
+  const dateOnlyMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const target = dateOnlyMatch
+    ? new Date(
+        Number(dateOnlyMatch[1]),
+        Number(dateOnlyMatch[2]) - 1,
+        Number(dateOnlyMatch[3]),
+        0,
+        0,
+        0,
+        0
+      ).getTime()
+    : new Date(trimmed).getTime();
+
   const now = fromDate.getTime();
-  
-  // If target date is in the past, roll forward to next year's date for countdown demonstration
-  if (target < now) {
-    const d = new Date(targetDateStr);
-    d.setFullYear(fromDate.getFullYear() + (fromDate.getMonth() > d.getMonth() || (fromDate.getMonth() === d.getMonth() && fromDate.getDate() > d.getDate()) ? 1 : 0));
-    target = d.getTime();
+
+  if (!Number.isFinite(target) || !Number.isFinite(now) || target <= now) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, isPast: true };
   }
 
   const diff = Math.max(0, target - now);
 
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  const days = Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+  const hours = Math.max(0, Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
+  const minutes = Math.max(0, Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
+  const seconds = Math.max(0, Math.floor((diff % (1000 * 60)) / 1000));
 
   return { days, hours, minutes, seconds, isPast: diff <= 0 };
 }

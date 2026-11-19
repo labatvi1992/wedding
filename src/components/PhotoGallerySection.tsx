@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Maximize2, X } from 'lucide-react';
 import { WEDDING_GALLERY_IMAGES } from '../data/initialData';
 
@@ -13,7 +14,16 @@ const RING_ITEMS = Array.from({ length: RING_LENGTH }, (_, slotIdx) => ({
   data: WEDDING_GALLERY_IMAGES[slotIdx % TOTAL_IMAGES],
 }));
 
-export const PhotoGallerySection: React.FC = () => {
+interface PhotoGallerySectionProps {
+  variant?: 'default' | 'hero';
+  topOverlay?: React.ReactNode;
+}
+
+export const PhotoGallerySection: React.FC<PhotoGallerySectionProps> = ({
+  variant = 'default',
+  topOverlay,
+}) => {
+  const isHero = variant === 'hero';
   const stageRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -39,12 +49,13 @@ export const PhotoGallerySection: React.FC = () => {
     return ((rounded % TOTAL_IMAGES) + TOTAL_IMAGES) % TOTAL_IMAGES;
   }, []);
 
-  // Compute and apply 3D Coverflow transforms for all 8 circular slots at 60fps
+  // Compute and apply smooth slide transforms (full-bleed on hero, 3D coverflow on default)
   const render3DFrame = useCallback(() => {
     const pos = currentPosRef.current;
     const stageWidth = stageRef.current?.clientWidth || 420;
-    // Horizontal spacing between adjacent 3D cards
-    const horizontalStep = Math.max(155, Math.min(210, stageWidth * 0.44));
+    const horizontalStep = isHero
+      ? stageWidth
+      : Math.max(155, Math.min(210, stageWidth * 0.44));
 
     RING_ITEMS.forEach(({ slotIdx }) => {
       const el = cardRefs.current[slotIdx];
@@ -56,6 +67,28 @@ export const PhotoGallerySection: React.FC = () => {
       if (diff < -RING_LENGTH / 2) diff += RING_LENGTH;
 
       const absDiff = Math.abs(diff);
+
+      if (isHero) {
+        if (absDiff > 1.35) {
+          el.style.opacity = '0';
+          el.style.pointerEvents = 'none';
+          el.style.zIndex = '0';
+          el.style.transform = `translate3d(${(diff * stageWidth).toFixed(1)}px, 0px, 0px)`;
+          el.style.filter = 'none';
+          return;
+        }
+
+        const translateX = diff * stageWidth;
+        const opacity = Math.max(0.85, 1 - absDiff * 0.15);
+        const zIndex = absDiff < 0.5 ? 20 : 10;
+
+        el.style.transform = `translate3d(${translateX.toFixed(2)}px, 0px, 0px)`;
+        el.style.opacity = opacity.toFixed(3);
+        el.style.filter = 'none';
+        el.style.zIndex = `${zIndex}`;
+        el.style.pointerEvents = absDiff < 0.5 ? 'auto' : 'none';
+        return;
+      }
 
       // Hide slots on the far back side of the ring so wrap-around is invisible
       if (absDiff > 2.2) {
@@ -81,7 +114,7 @@ export const PhotoGallerySection: React.FC = () => {
       el.style.zIndex = `${Math.max(1, zIndex)}`;
       el.style.pointerEvents = absDiff < 1.35 ? 'auto' : 'none';
     });
-  }, []);
+  }, [isHero]);
 
   // Smooth animation loop towards targetPosRef
   const startAnimationLoop = useCallback(() => {
@@ -90,8 +123,10 @@ export const PhotoGallerySection: React.FC = () => {
     const tick = () => {
       if (!isDraggingRef.current) {
         const diff = targetPosRef.current - currentPosRef.current;
-        if (Math.abs(diff) > 0.0015) {
-          currentPosRef.current += diff * 0.14;
+        const snapThreshold = isHero ? 0.003 : 0.0015;
+        const lerpFactor = isHero ? 0.24 : 0.14;
+        if (Math.abs(diff) > snapThreshold) {
+          currentPosRef.current += diff * lerpFactor;
           render3DFrame();
           animFrameRef.current = requestAnimationFrame(tick);
           return;
@@ -104,7 +139,7 @@ export const PhotoGallerySection: React.FC = () => {
     };
 
     animFrameRef.current = requestAnimationFrame(tick);
-  }, [render3DFrame]);
+  }, [isHero, render3DFrame]);
 
   // Step forward/backward by `delta` slides seamlessly
   const stepBy = useCallback(
@@ -133,8 +168,14 @@ export const PhotoGallerySection: React.FC = () => {
     render3DFrame();
     const handleResize = () => render3DFrame();
     window.addEventListener('resize', handleResize);
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && stageRef.current) {
+      observer = new ResizeObserver(() => render3DFrame());
+      observer.observe(stageRef.current);
+    }
     return () => {
       window.removeEventListener('resize', handleResize);
+      observer?.disconnect();
       if (animFrameRef.current !== null) {
         cancelAnimationFrame(animFrameRef.current);
         animFrameRef.current = null;
@@ -153,6 +194,81 @@ export const PhotoGallerySection: React.FC = () => {
     return () => clearInterval(timer);
   }, [selectedIdx, stepBy]);
 
+  // Strict scroll lock & keyboard navigation while fullscreen lightbox is open
+  useEffect(() => {
+    if (selectedIdx === null) return;
+
+    const scrollY = window.scrollY;
+    const html = document.documentElement;
+    const body = document.body;
+
+    const prevHtmlOverflow = html.style.overflow;
+    const prevHtmlOverscroll = html.style.overscrollBehavior;
+    const prevBodyOverflow = body.style.overflow;
+    const prevBodyPosition = body.style.position;
+    const prevBodyTop = body.style.top;
+    const prevBodyLeft = body.style.left;
+    const prevBodyRight = body.style.right;
+    const prevBodyWidth = body.style.width;
+    const prevBodyOverscroll = body.style.overscrollBehavior;
+
+    html.style.overflow = 'hidden';
+    html.style.overscrollBehavior = 'none';
+    body.style.overflow = 'hidden';
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.left = '0';
+    body.style.right = '0';
+    body.style.width = '100%';
+    body.style.overscrollBehavior = 'none';
+
+    const preventScroll = (e: Event) => {
+      e.preventDefault();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedIdx(null);
+      } else if (e.key === 'ArrowLeft') {
+        setSelectedIdx((prev) =>
+          prev === null ? null : (prev - 1 + TOTAL_IMAGES) % TOTAL_IMAGES
+        );
+      } else if (e.key === 'ArrowRight') {
+        setSelectedIdx((prev) =>
+          prev === null ? null : (prev + 1) % TOTAL_IMAGES
+        );
+      } else if (
+        e.key === 'ArrowDown' ||
+        e.key === 'ArrowUp' ||
+        e.key === 'PageDown' ||
+        e.key === 'PageUp' ||
+        e.key === ' '
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('wheel', preventScroll, { passive: false });
+    window.addEventListener('touchmove', preventScroll, { passive: false });
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('wheel', preventScroll);
+      window.removeEventListener('touchmove', preventScroll);
+      html.style.overflow = prevHtmlOverflow;
+      html.style.overscrollBehavior = prevHtmlOverscroll;
+      body.style.overflow = prevBodyOverflow;
+      body.style.position = prevBodyPosition;
+      body.style.top = prevBodyTop;
+      body.style.left = prevBodyLeft;
+      body.style.right = prevBodyRight;
+      body.style.width = prevBodyWidth;
+      body.style.overscrollBehavior = prevBodyOverscroll;
+      window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+    };
+  }, [selectedIdx !== null]);
+
   // Pointer / Touch drag handlers
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Ignore clicks on navigation arrow buttons
@@ -170,16 +286,19 @@ export const PhotoGallerySection: React.FC = () => {
       cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = null;
     }
-
-    e.currentTarget.setPointerCapture?.(e.pointerId);
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDraggingRef.current) return;
 
     const dx = e.clientX - dragStartXRef.current;
-    if (Math.abs(dx) > 6) {
+    if (!dragMovedRef.current && Math.abs(dx) > 6) {
       dragMovedRef.current = true;
+      try {
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+      } catch {
+        // Ignore if pointer cannot be captured
+      }
     }
 
     const now = performance.now();
@@ -189,7 +308,7 @@ export const PhotoGallerySection: React.FC = () => {
     lastDragTimeRef.current = now;
 
     const stageWidth = stageRef.current?.clientWidth || 420;
-    const dragSensitivity = Math.max(180, stageWidth * 0.52);
+    const dragSensitivity = isHero ? stageWidth : Math.max(180, stageWidth * 0.52);
 
     currentPosRef.current = dragStartPosRef.current - dx / dragSensitivity;
     render3DFrame();
@@ -250,7 +369,12 @@ export const PhotoGallerySection: React.FC = () => {
 
   return (
     <div
-      className="w-full pt-9 pb-11 bg-white relative overflow-hidden select-none"
+      data-testid="photo-carousel-3d"
+      className={
+        isHero
+          ? 'w-full pt-0 pb-2 bg-transparent relative overflow-hidden select-none'
+          : 'w-full pt-9 pb-11 bg-white relative overflow-hidden select-none'
+      }
       onMouseEnter={() => {
         isHoveredRef.current = true;
       }}
@@ -258,30 +382,40 @@ export const PhotoGallerySection: React.FC = () => {
         isHoveredRef.current = false;
       }}
     >
-      {/* Section Heading */}
-      <div className="text-center mb-4 px-4">
-        <h3 className="font-calligraphy text-[32px] sm:text-[36px] text-[#721319] leading-tight">
-          Khoảnh khắc hạnh phúc
-        </h3>
-        <p className="font-serif-editorial italic text-xs sm:text-sm text-stone-500">
-          Vuốt ngang để xem album ảnh 3D
-        </p>
-      </div>
+      {/* Section Heading (hidden when embedded in Hero poster) */}
+      {!isHero && (
+        <div className="text-center mb-4 px-4">
+          <h3 className="font-calligraphy text-[32px] sm:text-[36px] text-[#721319] leading-tight">
+            Khoảnh khắc hạnh phúc
+          </h3>
+          <p className="font-serif-editorial italic text-xs sm:text-sm text-stone-500">
+            Vuốt ngang để xem bộ ảnh 3D
+          </p>
+        </div>
+      )}
 
-      {/* 3D Coverflow Stage with +20px vertical margin/padding and isolated stacking context */}
-      <div className="relative z-10 isolate w-full glide-3d-stage my-5">
+      {/* Carousel Stage with isolated stacking context */}
+      <div className={`relative z-10 isolate w-full glide-3d-stage ${isHero ? 'mt-0 mb-1' : 'my-5'}`}>
         <div
           ref={stageRef}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={finishDrag}
           onPointerCancel={finishDrag}
-          className="relative w-full py-10 flex items-center justify-center overflow-visible touch-pan-y cursor-grab active:cursor-grabbing"
+          className={`relative w-full ${
+            isHero ? 'py-0 overflow-hidden' : 'py-10 overflow-visible'
+          } flex items-center justify-center touch-pan-y cursor-grab active:cursor-grabbing`}
         >
-          {/* Invisible sizing spacer matching the active center card width (narrowed by 20px each side via horizontal padding) */}
-          <div className="w-[calc(100%-128px)] sm:w-[calc(100%-156px)] aspect-[2/3] pointer-events-none opacity-0" />
+          {/* Invisible sizing spacer matching the active slide width */}
+          <div
+            className={`${
+              isHero
+                ? 'w-full'
+                : 'w-[calc(100%-128px)] sm:w-[calc(100%-156px)]'
+            } aspect-[2/3] pointer-events-none opacity-0`}
+          />
 
-          {/* Circular 3D Cards Ring */}
+          {/* Circular Slides Ring */}
           {RING_ITEMS.map(({ slotIdx, imageIdx, data }) => (
             <div
               key={slotIdx}
@@ -289,7 +423,11 @@ export const PhotoGallerySection: React.FC = () => {
                 cardRefs.current[slotIdx] = el;
               }}
               onClick={(e) => handleCardClick(slotIdx, imageIdx, e)}
-              className="glide-3d-card-wrapper group absolute w-[calc(100%-128px)] sm:w-[calc(100%-156px)] aspect-[2/3] rounded-[24px] overflow-hidden bg-[#878785] border border-stone-200/80 cursor-pointer shadow-[0_14px_34px_rgba(0,0,0,0.22)]"
+              className={`glide-3d-card-wrapper group absolute ${
+                isHero
+                  ? 'inset-0 w-full h-full rounded-none border-0 shadow-none'
+                  : 'w-[calc(100%-128px)] sm:w-[calc(100%-156px)] aspect-[2/3] rounded-[22px] border border-stone-200/80 shadow-[0_14px_34px_rgba(0,0,0,0.22)]'
+              } overflow-hidden bg-[#878785] cursor-pointer`}
               style={{
                 willChange: 'transform, opacity, filter',
                 backfaceVisibility: 'hidden',
@@ -302,12 +440,26 @@ export const PhotoGallerySection: React.FC = () => {
                 className="w-full h-full object-cover object-center pointer-events-none select-none"
               />
 
-              {/* Zoom icon on card */}
-              <div className="absolute top-3 right-3 p-1.5 rounded-full bg-black/35 text-white/90 backdrop-blur-xs opacity-75 group-hover:opacity-100 transition-opacity pointer-events-none">
+              {/* Zoom button on slide */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedIdx(imageIdx);
+                }}
+                aria-label="Phóng to ảnh"
+                title="Phóng to ảnh"
+                className={`absolute ${
+                  isHero ? 'bottom-3 right-3' : 'top-3 right-3'
+                } z-20 p-2 rounded-full bg-black/45 hover:bg-[#721319] text-white/95 border border-white/25 backdrop-blur-xs opacity-90 group-hover:opacity-100 transition-all active:scale-95 cursor-pointer`}
+              >
                 <Maximize2 className="w-3.5 h-3.5" />
-              </div>
+              </button>
             </div>
           ))}
+
+          {/* Optional absolute top overlay inside the Carousel stage */}
+          {topOverlay}
 
           {/* Left / Right Navigation Arrows */}
           <button
@@ -316,7 +468,11 @@ export const PhotoGallerySection: React.FC = () => {
               e.stopPropagation();
               stepBy(-1);
             }}
-            className=" absolute left-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-[#721319] text-stone-800 hover:text-white border border-stone-200/80 flex items-center justify-center shadow-lg backdrop-blur-xs transition-all active:scale-95 cursor-pointer z-40"
+            className={`absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg backdrop-blur-xs transition-all active:scale-95 cursor-pointer z-40 ${
+              isHero
+                ? 'bg-white/85 hover:bg-[#721319] text-[#721319] hover:text-white border border-white/60'
+                : 'bg-white/90 hover:bg-[#721319] text-stone-800 hover:text-white border border-stone-200/80'
+            }`}
             aria-label="Ảnh trước"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -327,7 +483,11 @@ export const PhotoGallerySection: React.FC = () => {
               e.stopPropagation();
               stepBy(1);
             }}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-[#721319] text-stone-800 hover:text-white border border-stone-200/80 flex items-center justify-center shadow-lg backdrop-blur-xs transition-all active:scale-95 cursor-pointer z-40"
+            className={`absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center shadow-lg backdrop-blur-xs transition-all active:scale-95 cursor-pointer z-40 ${
+              isHero
+                ? 'bg-white/85 hover:bg-[#721319] text-[#721319] hover:text-white border border-white/60'
+                : 'bg-white/90 hover:bg-[#721319] text-stone-800 hover:text-white border border-stone-200/80'
+            }`}
             aria-label="Ảnh tiếp theo"
           >
             <ChevronRight className="w-5 h-5" />
@@ -335,7 +495,7 @@ export const PhotoGallerySection: React.FC = () => {
         </div>
 
         {/* Pagination Dots */}
-        <div className="flex items-center justify-center gap-2 pt-2">
+        <div className={`flex items-center justify-center gap-2 ${isHero ? 'pt-3 pb-1' : 'pt-1.5'}`}>
           {WEDDING_GALLERY_IMAGES.map((_, dotIdx) => (
             <button
               key={dotIdx}
@@ -344,6 +504,8 @@ export const PhotoGallerySection: React.FC = () => {
               className={`h-2 rounded-full transition-all cursor-pointer ${
                 activeCenterIdx === dotIdx
                   ? 'w-6 bg-[#721319]'
+                  : isHero
+                  ? 'w-2 bg-[#721319]/25 hover:bg-[#721319]/45'
                   : 'w-2 bg-stone-300 hover:bg-stone-400'
               }`}
               aria-label={`Chuyển đến ảnh ${dotIdx + 1}`}
@@ -352,59 +514,72 @@ export const PhotoGallerySection: React.FC = () => {
         </div>
       </div>
 
-      {/* Fullscreen Lightbox Modal when clicking the active slide */}
-      {selectedIdx !== null && (
-        <div
-          className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setSelectedIdx(null)}
-        >
-          <button
-            type="button"
-            onClick={() => setSelectedIdx(null)}
-            className="absolute top-4 right-4 p-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white z-10 transition-colors cursor-pointer"
-            aria-label="Đóng ảnh"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          <button
-            type="button"
-            onClick={handlePrevLightbox}
-            className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white transition-colors cursor-pointer z-10"
-            aria-label="Ảnh trước"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-
+      {/* Fullscreen Lightbox Modal portaled to document.body above all page elements */}
+      {selectedIdx !== null &&
+        typeof document !== 'undefined' &&
+        createPortal(
           <div
-            className="max-w-md w-full flex flex-col items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Xem ảnh cưới phóng to"
+            data-testid="carousel-lightbox"
+            className="fixed inset-0 z-[9999] bg-black/92 backdrop-blur-md flex items-center justify-center p-4 overscroll-none touch-none select-none"
+            onClick={() => setSelectedIdx(null)}
           >
-            <div className="relative overflow-hidden rounded-2xl shadow-2xl border border-white/15 max-h-[78vh] flex items-center justify-center">
-              <img
-                src={WEDDING_GALLERY_IMAGES[selectedIdx].url}
-                alt={WEDDING_GALLERY_IMAGES[selectedIdx].caption}
-                className="max-h-[78vh] w-auto max-w-full object-contain"
-              />
-            </div>
-            <p className="text-sm sm:text-base font-serif-editorial text-white mt-3 text-center">
-              {WEDDING_GALLERY_IMAGES[selectedIdx].caption}
-            </p>
-            <span className="text-xs text-stone-400 mt-0.5 font-sans-clean">
-              {selectedIdx + 1} / {TOTAL_IMAGES}
-            </span>
-          </div>
+            {/* Top-right Close button with explicit "Đóng" label */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedIdx(null);
+              }}
+              className="absolute top-4 right-4 z-30 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/15 hover:bg-[#721319] text-white border border-white/30 shadow-lg backdrop-blur-md text-sm font-sans-clean font-medium transition-all active:scale-95 cursor-pointer"
+              aria-label="Đóng ảnh"
+              title="Đóng phóng to"
+            >
+              <X className="w-4 h-4 stroke-[2.4]" />
+              <span>Đóng</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={handleNextLightbox}
-            className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white transition-colors cursor-pointer z-10"
-            aria-label="Ảnh tiếp theo"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-        </div>
-      )}
+            <button
+              type="button"
+              onClick={handlePrevLightbox}
+              className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/50 hover:bg-black/75 border border-white/20 text-white transition-colors cursor-pointer z-20"
+              aria-label="Ảnh trước"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
+            <div
+              className="max-w-md w-full flex flex-col items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="relative inline-flex overflow-hidden rounded-2xl shadow-2xl border border-white/20 max-h-[80vh] items-center justify-center bg-black">
+                <img
+                  src={WEDDING_GALLERY_IMAGES[selectedIdx].url}
+                  alt={WEDDING_GALLERY_IMAGES[selectedIdx].caption}
+                  className="max-h-[80vh] w-auto max-w-full object-contain block"
+                />
+              </div>
+              <p className="text-sm sm:text-base font-serif-editorial text-white mt-3 text-center">
+                {WEDDING_GALLERY_IMAGES[selectedIdx].caption}
+              </p>
+              <span className="text-xs text-stone-400 mt-0.5 font-sans-clean">
+                {selectedIdx + 1} / {TOTAL_IMAGES}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleNextLightbox}
+              className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/50 hover:bg-black/75 border border-white/20 text-white transition-colors cursor-pointer z-20"
+              aria-label="Ảnh tiếp theo"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

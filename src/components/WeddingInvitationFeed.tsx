@@ -23,7 +23,7 @@ import { AudioDiscButton } from './AudioDiscButton';
 import { HeroSection } from './HeroSection';
 import { CoupleCalendarCountdownSection } from './CoupleCalendarCountdownSection';
 import { InvitationCardSection } from './InvitationCardSection';
-import { WeddingTimelineSection, WeddingClosingSection } from './WeddingTimelineSection';
+import { WeddingClosingSection } from './WeddingTimelineSection';
 import {
   buildSheetRowPayload,
   resolveGoogleSheetWebhookUrl,
@@ -324,14 +324,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
         {/* 2. October Calendar + Bride Card + Vertical Countdown + Groom Card */}
         <CoupleCalendarCountdownSection config={config} />
 
-        {/* 3. Personalized Invitation Callout + "Thời gian" Timeline (moved into Love Story position) */}
-        <WeddingTimelineSection
-          config={config}
-          guestName={currentGuest?.name}
-          onOpenRsvpModal={() => setActiveSheet('rsvp')}
-        />
-
-        {/* 4. Formal Invitation + Embedded Google Map + 3D Photo Carousel */}
+        {/* 3. Embedded Venue Map */}
         <InvitationCardSection
           config={config}
           onScrollToRsvp={() => setActiveSheet('rsvp')}
@@ -383,9 +376,9 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
               type="button"
               whileTap={{ scale: 0.97 }}
               onClick={() => setActiveSheet('rsvp')}
-              className="flex-1 h-9 px-3.5 rounded-full bg-[#721319] hover:bg-[#5e1015] text-white text-xs sm:text-[13px] font-sans-clean font-semibold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-colors"
+              className="flex-1 h-9 px-2.5 sm:px-3.5 rounded-full bg-[#721319] hover:bg-[#5e1015] text-white text-[11.5px] sm:text-[13px] font-sans-clean font-semibold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-colors whitespace-nowrap"
             >
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
               <span>Xác nhận tham dự</span>
             </motion.button>
 
@@ -395,7 +388,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
               whileTap={{ scale: 0.96 }}
               onClick={() => scrollToSection('section-map')}
               aria-label="Địa điểm nhà hàng"
-              className="h-9 px-3.5 rounded-full bg-stone-700/90 hover:bg-stone-800 text-white text-xs sm:text-[13px] font-sans-clean font-medium flex items-center justify-center gap-1.5 shrink-0 shadow-sm cursor-pointer transition-colors"
+              className="h-9 px-2.5 sm:px-3.5 rounded-full bg-stone-700/90 hover:bg-stone-800 text-white text-[11.5px] sm:text-[13px] font-sans-clean font-medium flex items-center justify-center gap-1.5 shrink-0 shadow-sm cursor-pointer transition-colors whitespace-nowrap"
             >
               <MapPin className="w-3.5 h-3.5 shrink-0" />
               <span>Địa điểm nhà hàng</span>
@@ -457,7 +450,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                         <div className="grid grid-cols-12 bg-stone-100 border-b border-stone-200 py-2 px-3 font-semibold text-stone-600 text-left">
                           <div className="col-span-2">STT</div>
                           <div className="col-span-5">Họ tên</div>
-                          <div className="col-span-3">Vote</div>
+                          <div className="col-span-3">Xác nhận</div>
                           <div className="col-span-2 text-right">Số lượng</div>
                         </div>
                         <div className="grid grid-cols-12 py-2.5 px-3 text-stone-800 items-center text-left">
