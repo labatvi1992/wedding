@@ -32,11 +32,9 @@ export const GOOGLE_SHEET_WEB_APP_URL =
   '';
 
 export const DEMO_IMAGES = {
-  heroCouple: '/assets/aistudio/01-Hinh-Nen_8e97fd58.JPG',
-  bridePortrait: '/assets/aistudio/02-Co-Dau_2e27414f.JPG',
-  groomPortrait: '/assets/aistudio/03-Chu-Re_4c7c4f1d.JPG',
-  coupleCelebration: '/assets/aistudio/03-Chu-Re_4c7c4f1d.JPG',
-  coupleForever: '/assets/aistudio/04-Mai-Ben-Nhau_1e080bab.JPG',
+  bridePortrait: '/assets/aistudio/Hinh-Co-Dau_2e27414f.JPG',
+  groomPortrait: '/assets/aistudio/Hinh-Chu-Re_4c7c4f1d.JPG',
+  coupleForever: '/assets/aistudio/Hinh-Mai-Ben-Nhau_1e080bab.JPG',
 };
 
 export const INITIAL_WEDDING_CONFIG: WeddingConfig = {
