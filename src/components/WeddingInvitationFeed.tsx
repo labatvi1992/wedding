@@ -59,6 +59,13 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
   const [copiedShare, setCopiedShare] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+  const hasGuestName = Boolean(currentGuest?.name?.trim());
+
+  const handleOpenRsvp = () => {
+    if (!hasGuestName) return;
+    setActiveSheet('rsvp');
+  };
+
   // RSVP Modal State (auto-synced when currentGuest is resolved from URL)
   const [guestName, setGuestName] = useState(currentGuest?.name || '');
   const [guestPhone, setGuestPhone] = useState(currentGuest?.phone || '');
@@ -327,13 +334,14 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
         {/* 3. Embedded Venue Map */}
         <InvitationCardSection
           config={config}
-          onScrollToRsvp={() => setActiveSheet('rsvp')}
+          onScrollToRsvp={hasGuestName ? handleOpenRsvp : undefined}
         />
 
         {/* 5. Closing RSVP Note + Closing Portrait */}
         <WeddingClosingSection
           config={config}
-          onOpenRsvpModal={() => setActiveSheet('rsvp')}
+          guestName={currentGuest?.name}
+          onOpenRsvpModal={hasGuestName ? handleOpenRsvp : undefined}
         />
 
         {/* Floating Hearts Animation Layer */}
@@ -371,16 +379,18 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
               )}
             </motion.button>
 
-            {/* 2. "Xác nhận tham dự" Rounded Button */}
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setActiveSheet('rsvp')}
-              className="flex-1 h-9 px-2.5 sm:px-3.5 rounded-full bg-[#721319] hover:bg-[#5e1015] text-white text-[11.5px] sm:text-[13px] font-sans-clean font-semibold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-colors whitespace-nowrap"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              <span>Xác nhận tham dự</span>
-            </motion.button>
+            {/* 2. "Xác nhận tham dự" Rounded Button - Chỉ hiển thị khi có họ tên truyền vào */}
+            {hasGuestName && (
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.97 }}
+                onClick={handleOpenRsvp}
+                className="flex-1 h-9 px-2.5 sm:px-3.5 rounded-full bg-[#721319] hover:bg-[#5e1015] text-white text-[11.5px] sm:text-[13px] font-sans-clean font-semibold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-colors whitespace-nowrap"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span>Xác nhận tham dự</span>
+              </motion.button>
+            )}
 
             {/* 3. "Địa điểm nhà hàng" Button (Replaces Menu Button) */}
             <motion.button
@@ -388,7 +398,9 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
               whileTap={{ scale: 0.96 }}
               onClick={() => scrollToSection('section-map')}
               aria-label="Địa điểm nhà hàng"
-              className="h-9 px-2.5 sm:px-3.5 rounded-full bg-stone-700/90 hover:bg-stone-800 text-white text-[11.5px] sm:text-[13px] font-sans-clean font-medium flex items-center justify-center gap-1.5 shrink-0 shadow-sm cursor-pointer transition-colors whitespace-nowrap"
+              className={`${
+                hasGuestName ? 'shrink-0' : 'flex-1'
+              } h-9 px-2.5 sm:px-3.5 rounded-full bg-stone-700/90 hover:bg-stone-800 text-white text-[11.5px] sm:text-[13px] font-sans-clean font-medium flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-colors whitespace-nowrap`}
             >
               <MapPin className="w-3.5 h-3.5 shrink-0" />
               <span>Địa điểm nhà hàng</span>
@@ -398,7 +410,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
 
         {/* Bottom Sheet Modal for Xác Nhận Tham Dự */}
         <AnimatePresence>
-          {activeSheet !== 'none' && (
+          {activeSheet !== 'none' && hasGuestName && (
             <div className="fixed inset-0 z-[100] flex items-end justify-center">
               <motion.div
                 initial={{ opacity: 0 }}
@@ -450,7 +462,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                         <div className="grid grid-cols-12 bg-stone-100 border-b border-stone-200 py-2 px-3 font-semibold text-stone-600 text-left">
                           <div className="col-span-2">STT</div>
                           <div className="col-span-5">Họ tên</div>
-                          <div className="col-span-3">Xác nhận</div>
+                          <div className="col-span-3">Bình chọn</div>
                           <div className="col-span-2 text-right">Số lượng</div>
                         </div>
                         <div className="grid grid-cols-12 py-2.5 px-3 text-stone-800 items-center text-left">
@@ -461,7 +473,7 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                             {lastSubmittedRow['Họ tên']}
                           </div>
                           <div className="col-span-3 text-[11px] font-semibold text-emerald-700">
-                            {lastSubmittedRow.Vote}
+                            {lastSubmittedRow['Bình chọn']}
                           </div>
                           <div className="col-span-2 text-right font-mono font-bold">
                             {lastSubmittedRow['Số lượng']}

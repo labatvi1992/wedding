@@ -140,7 +140,11 @@ export default function App() {
             status: 'pending',
             attendeesCount: 1,
           });
+        } else {
+          setCurrentGuest(null);
         }
+      } else {
+        setCurrentGuest(null);
       }
     };
 
@@ -167,6 +171,8 @@ export default function App() {
         status: 'pending',
         attendeesCount: 1,
       });
+    } else {
+      setCurrentGuest(null);
     }
     setView('invitation');
     window.scrollTo({ top: 0, behavior: 'smooth' });

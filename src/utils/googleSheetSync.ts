@@ -4,13 +4,8 @@ import { GOOGLE_SHEET_WEB_APP_URL } from '../data/initialData';
 export interface SheetRowPayload {
   STT: number;
   'Họ tên': string;
-  Vote: 'Sẽ tham dự' | 'Bận không tới được';
+  'Bình chọn': 'Sẽ tham dự' | 'Bận không tới được';
   'Số lượng': number;
-  stt: number;
-  hoTen: string;
-  vote: 'Sẽ tham dự' | 'Bận không tới được';
-  soLuong: number;
-  timestamp: string;
 }
 
 /**
@@ -28,8 +23,8 @@ export function resolveGoogleSheetWebhookUrl(config?: WeddingConfig): string {
 }
 
 /**
- * Maps RSVP submission data to the exact columns of "Danh sách mời cưới":
- * STT (tự tăng) | Họ tên | Vote | Số lượng
+ * Maps RSVP submission data to the exact 4 columns of "Danh sách mời cưới":
+ * STT (tự tăng) | Họ tên | Bình chọn | Số lượng
  */
 export function buildSheetRowPayload(params: {
   stt: number;
@@ -46,13 +41,8 @@ export function buildSheetRowPayload(params: {
   return {
     STT: params.stt,
     'Họ tên': cleanName,
-    Vote: voteLabel,
+    'Bình chọn': voteLabel,
     'Số lượng': count,
-    stt: params.stt,
-    hoTen: cleanName,
-    vote: voteLabel,
-    soLuong: count,
-    timestamp: new Date().toISOString(),
   };
 }
 
@@ -71,7 +61,8 @@ export async function submitRowToGoogleSheet(
     const urlObj = new URL(trimmedUrl);
     urlObj.searchParams.set('stt', String(payload.STT));
     urlObj.searchParams.set('hoTen', payload['Họ tên']);
-    urlObj.searchParams.set('vote', payload.Vote);
+    urlObj.searchParams.set('binhChon', payload['Bình chọn']);
+    urlObj.searchParams.set('vote', payload['Bình chọn']);
     urlObj.searchParams.set('soLuong', String(payload['Số lượng']));
 
     await fetch(urlObj.toString(), {
@@ -160,7 +151,9 @@ export async function fetchGuestsFromGoogleSheet(sheetUrl: string): Promise<Gues
             ).trim();
             if (!nameVal || nameVal.toLowerCase() === 'họ tên') return null;
 
-            const voteRaw = String(item['Vote'] ?? item.vote ?? item.status ?? '').trim();
+            const voteRaw = String(
+              item['Bình chọn'] ?? item.binhChon ?? item['Vote'] ?? item.vote ?? item.status ?? ''
+            ).trim();
             const countRaw = Number(
               item['Số lượng'] ?? item.soLuong ?? item.attendeesCount ?? 1
             );

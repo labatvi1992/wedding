@@ -315,12 +315,12 @@ export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
             </div>
           ) : (
             <>
-              {/* 4-Column Synchronized Table (STT | Họ tên | Vote | Số lượng | Thao tác) */}
+              {/* 4-Column Synchronized Table (STT | Họ tên | Bình chọn | Số lượng | Liên kết) */}
               <div className="rounded-2xl border border-stone-200 overflow-hidden">
                 <div className="grid grid-cols-12 bg-stone-100 border-b border-stone-200 py-2.5 px-3 text-xs font-bold text-stone-700 items-center">
                   <div className="col-span-1">STT</div>
                   <div className="col-span-4">Họ tên</div>
-                  <div className="col-span-3">Vote</div>
+                  <div className="col-span-3">Bình chọn</div>
                   <div className="col-span-1 text-center">SL</div>
                   <div className="col-span-3 text-right">Liên kết</div>
                 </div>

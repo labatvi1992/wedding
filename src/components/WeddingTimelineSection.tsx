@@ -21,7 +21,9 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
     align: idx % 2 === 0 ? ('left' as const) : ('right' as const),
   }));
 
+  const hasGuestName = Boolean(guestName?.trim());
   const displayGuestName = guestName?.trim() || 'Quý khách';
+  const canOpenRsvp = hasGuestName && Boolean(onOpenRsvpModal);
 
   return (
     <section id="section-timeline" className="w-full bg-white text-stone-900 pt-6 pb-8 select-none">
@@ -32,15 +34,25 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.7 }}
-          onClick={onOpenRsvpModal}
-          className="text-center mb-8 px-4 py-5 rounded-2xl bg-stone-50/85 border border-stone-200/80 shadow-2xs cursor-pointer group hover:border-[#721319]/30 transition-all"
-          title="Nhấn để mở biểu mẫu Xác nhận tham dự"
+          onClick={canOpenRsvp ? onOpenRsvpModal : undefined}
+          className={`text-center mb-8 px-4 py-5 rounded-2xl bg-stone-50/85 border border-stone-200/80 shadow-2xs transition-all ${
+            canOpenRsvp ? 'cursor-pointer group hover:border-[#721319]/30' : 'cursor-default'
+          }`}
+          title={canOpenRsvp ? 'Nhấn để mở biểu mẫu Xác nhận tham dự' : undefined}
         >
           {/* Subtle ornamental divider */}
           <div className="flex items-center justify-center gap-2.5 mb-2.5">
-            <span className="h-px w-10 bg-stone-300 group-hover:bg-[#721319]/40 transition-colors" />
+            <span
+              className={`h-px w-10 bg-stone-300 transition-colors ${
+                canOpenRsvp ? 'group-hover:bg-[#721319]/40' : ''
+              }`}
+            />
             <span className="text-[#721319] text-xs leading-none">✦</span>
-            <span className="h-px w-10 bg-stone-300 group-hover:bg-[#721319]/40 transition-colors" />
+            <span
+              className={`h-px w-10 bg-stone-300 transition-colors ${
+                canOpenRsvp ? 'group-hover:bg-[#721319]/40' : ''
+              }`}
+            />
           </div>
 
           <p className="font-serif-editorial italic text-[18px] sm:text-[20px] text-stone-800 leading-[1.65]">
@@ -51,17 +63,19 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
             đến tham dự buổi tiệc rượu chung vui cùng gia đình chúng tôi.
           </p>
 
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenRsvpModal?.();
-            }}
-            className="mt-3 inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-sans-clean font-semibold text-[#721319] hover:text-[#540d12] underline decoration-[#721319]/45 underline-offset-4 cursor-pointer transition-colors"
-          >
-            <span>Xác nhận tham dự tại đây</span>
-            <span aria-hidden="true">→</span>
-          </button>
+          {canOpenRsvp && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenRsvpModal?.();
+              }}
+              className="mt-3 inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-sans-clean font-semibold text-[#721319] hover:text-[#540d12] underline decoration-[#721319]/45 underline-offset-4 cursor-pointer transition-colors"
+            >
+              <span>Xác nhận tham dự tại đây</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          )}
         </motion.div>
 
         {/* Section Heading: "Thời gian" */}
@@ -143,8 +157,12 @@ export const WeddingTimelineSection: React.FC<WeddingTimelineSectionProps> = ({
 
 export const WeddingClosingSection: React.FC<WeddingTimelineSectionProps> = ({
   config,
+  guestName,
   onOpenRsvpModal,
 }) => {
+  const hasGuestName = Boolean(guestName?.trim());
+  const canOpenRsvp = hasGuestName && Boolean(onOpenRsvpModal);
+
   return (
     <section id="section-closing" className="w-full bg-white text-stone-900 pt-2 pb-0 select-none">
       <div className="px-4 sm:px-8 max-w-md mx-auto">
@@ -154,18 +172,32 @@ export const WeddingClosingSection: React.FC<WeddingTimelineSectionProps> = ({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.75, delay: 0.15 }}
-          onClick={onOpenRsvpModal}
-          className="mt-2 mb-10 text-center px-3 py-5 rounded-2xl bg-stone-50/75 border border-stone-200/80 shadow-2xs cursor-pointer group hover:border-[#721319]/30 transition-all"
-          title="Nhấn để xác nhận tham dự"
+          onClick={canOpenRsvp ? onOpenRsvpModal : undefined}
+          className={`mt-2 mb-10 text-center px-3 py-5 rounded-2xl bg-stone-50/75 border border-stone-200/80 shadow-2xs transition-all ${
+            canOpenRsvp ? 'cursor-pointer group hover:border-[#721319]/30' : 'cursor-default'
+          }`}
+          title={canOpenRsvp ? 'Nhấn để xác nhận tham dự' : undefined}
         >
           {/* Subtle ornamental divider */}
           <div className="flex items-center justify-center gap-2.5 mb-3">
-            <span className="h-px w-10 bg-stone-300 group-hover:bg-[#721319]/40 transition-colors" />
+            <span
+              className={`h-px w-10 bg-stone-300 transition-colors ${
+                canOpenRsvp ? 'group-hover:bg-[#721319]/40' : ''
+              }`}
+            />
             <span className="text-[#721319] text-xs leading-none">✦</span>
-            <span className="h-px w-10 bg-stone-300 group-hover:bg-[#721319]/40 transition-colors" />
+            <span
+              className={`h-px w-10 bg-stone-300 transition-colors ${
+                canOpenRsvp ? 'group-hover:bg-[#721319]/40' : ''
+              }`}
+            />
           </div>
 
-          <p className="font-serif-editorial italic text-[17px] sm:text-[18.5px] text-stone-800 leading-[1.65] group-hover:text-stone-900 transition-colors">
+          <p
+            className={`font-serif-editorial italic text-[17px] sm:text-[18.5px] text-stone-800 leading-[1.65] transition-colors ${
+              canOpenRsvp ? 'group-hover:text-stone-900' : ''
+            }`}
+          >
             Sự hiện diện của Quý khách là niềm vinh hạnh lớn lao đối với gia đình chúng tôi. Rất mong Quý khách dành chút thời gian xác nhận tham dự để gia đình có sự tiếp đón chu đáo và trọn vẹn nhất.
           </p>
 
