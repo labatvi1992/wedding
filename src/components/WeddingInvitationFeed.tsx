@@ -499,11 +499,10 @@ export const WeddingInvitationFeed: React.FC<WeddingInvitationFeedProps> = ({
                       </label>
                       <input
                         type="text"
-                        required
+                        readOnly
                         value={guestName}
-                        onChange={(e) => setGuestName(e.target.value)}
                         placeholder="Nhập họ và tên của bạn..."
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 text-xs sm:text-sm focus:bg-white focus:outline-none focus:border-[#721319]"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-stone-100/90 border border-stone-200 text-stone-800 text-xs sm:text-sm font-medium cursor-not-allowed select-none focus:outline-none"
                       />
                     </div>
 

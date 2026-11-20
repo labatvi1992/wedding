@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { WeddingConfig, Guest, GuestWish } from './types/wedding';
 import {
   INITIAL_WEDDING_CONFIG,
@@ -112,6 +112,11 @@ export default function App() {
     return null;
   });
 
+  const guestsRef = useRef(guests);
+  useEffect(() => {
+    guestsRef.current = guests;
+  }, [guests]);
+
   useEffect(() => {
     const syncFromLocation = () => {
       const params = new URLSearchParams(window.location.search);
@@ -122,7 +127,7 @@ export default function App() {
       if (guestParam) {
         const decodedParam = decodeURIComponent(guestParam).trim();
         const lowerParam = decodedParam.toLowerCase();
-        const matched = guests.find(
+        const matched = guestsRef.current.find(
           (g) =>
             (g.customSlug && decodeURIComponent(g.customSlug).toLowerCase() === lowerParam) ||
             g.name.toLowerCase() === lowerParam
@@ -155,7 +160,7 @@ export default function App() {
       window.removeEventListener('popstate', syncFromLocation);
       window.removeEventListener('hashchange', syncFromLocation);
     };
-  }, [guests]);
+  }, []);
 
   const handleNavigateToHomeWithGuest = (guestName?: string) => {
     const trimmed = guestName?.trim();
@@ -179,33 +184,40 @@ export default function App() {
   };
 
   // Persist to local storage
-  const handleUpdateGuests = (updated: Guest[]) => {
-    setGuests(updated);
-    try {
-      localStorage.setItem(STORAGE_KEYS.GUESTS, JSON.stringify(updated));
-    } catch {
-      // Storage quota or error
-    }
-  };
+  const handleUpdateGuests = useCallback((updated: Guest[]) => {
+    setGuests((prev) => {
+      if (prev.length === updated.length && JSON.stringify(prev) === JSON.stringify(updated)) {
+        return prev;
+      }
+      try {
+        localStorage.setItem(STORAGE_KEYS.GUESTS, JSON.stringify(updated));
+      } catch {
+        // Storage quota or error
+      }
+      return updated;
+    });
+  }, []);
 
-  const handleUpdateConfig = (updated: WeddingConfig) => {
+  const handleUpdateConfig = useCallback((updated: WeddingConfig) => {
     setConfig(updated);
     try {
       localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(updated));
     } catch {
       // Storage quota or error
     }
-  };
+  }, []);
 
-  const handleAddWish = (newWish: GuestWish) => {
-    const updated = [newWish, ...wishes];
-    setWishes(updated);
-    try {
-      localStorage.setItem(STORAGE_KEYS.WISHES, JSON.stringify(updated));
-    } catch {
-      // Storage quota or error
-    }
-  };
+  const handleAddWish = useCallback((newWish: GuestWish) => {
+    setWishes((prev) => {
+      const updated = [newWish, ...prev];
+      try {
+        localStorage.setItem(STORAGE_KEYS.WISHES, JSON.stringify(updated));
+      } catch {
+        // Storage quota or error
+      }
+      return updated;
+    });
+  }, []);
 
   const handleSaveRsvp = (guestData: Partial<Guest>, wishContent?: string) => {
     if (!guestData.name) return;

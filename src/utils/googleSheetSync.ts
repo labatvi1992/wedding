@@ -4,7 +4,7 @@ import { GOOGLE_SHEET_WEB_APP_URL } from '../data/initialData';
 export interface SheetRowPayload {
   STT: number;
   'Họ tên': string;
-  'Bình chọn': 'Sẽ tham dự' | 'Bận không tới được';
+  'Bình chọn': 'Sẽ tham dự' | 'Bận không tới được' | '';
   'Số lượng': number;
 }
 
@@ -33,10 +33,19 @@ export function buildSheetRowPayload(params: {
   attendeesCount: number;
 }): SheetRowPayload {
   const cleanName = params.name.trim();
-  const voteLabel: 'Sẽ tham dự' | 'Bận không tới được' =
-    params.status === 'declined' ? 'Bận không tới được' : 'Sẽ tham dự';
-  const count =
-    params.status === 'declined' ? 0 : Math.max(1, Number(params.attendeesCount) || 1);
+  let voteLabel: 'Sẽ tham dự' | 'Bận không tới được' | '' = '';
+  let count = 0;
+
+  if (params.status === 'attending') {
+    voteLabel = 'Sẽ tham dự';
+    count = Math.max(1, Number(params.attendeesCount) || 1);
+  } else if (params.status === 'declined') {
+    voteLabel = 'Bận không tới được';
+    count = 0;
+  } else {
+    voteLabel = '';
+    count = 0;
+  }
 
   return {
     STT: params.stt,
@@ -155,7 +164,7 @@ export async function fetchGuestsFromGoogleSheet(sheetUrl: string): Promise<Gues
               item['Bình chọn'] ?? item.binhChon ?? item['Vote'] ?? item.vote ?? item.status ?? ''
             ).trim();
             const countRaw = Number(
-              item['Số lượng'] ?? item.soLuong ?? item.attendeesCount ?? 1
+              item['Số lượng'] ?? item.soLuong ?? item.attendeesCount ?? 0
             );
 
             const isDeclined =
@@ -180,7 +189,7 @@ export async function fetchGuestsFromGoogleSheet(sheetUrl: string): Promise<Gues
               group: 'Bạn Chú rể',
               phone: '',
               status,
-              attendeesCount: isDeclined ? 0 : isNaN(countRaw) ? 1 : countRaw,
+              attendeesCount: isDeclined || isPending ? 0 : (isNaN(countRaw) ? 1 : countRaw),
               customSlug: encodeURIComponent(nameVal),
             };
           })
@@ -190,7 +199,7 @@ export async function fetchGuestsFromGoogleSheet(sheetUrl: string): Promise<Gues
       // Fall through to CSV parser
     }
 
-    // 2. Parse as CSV (STT,Họ tên,Vote,Số lượng)
+    // 2. Parse as CSV (STT,Họ tên,Bình chọn,Số lượng)
     const lines = text
       .split(/\r?\n/)
       .map((l) => l.trim())
@@ -204,7 +213,7 @@ export async function fetchGuestsFromGoogleSheet(sheetUrl: string): Promise<Gues
       if (!nameVal || nameVal.toLowerCase() === 'họ tên') continue;
 
       const voteRaw = (cols[2] || '').trim();
-      const countRaw = Number(cols[3] ?? 1);
+      const countRaw = Number(cols[3] ?? 0);
       const isDeclined =
         voteRaw.toLowerCase().includes('bận') || voteRaw.toLowerCase().includes('không');
       const isPending = !voteRaw || voteRaw.toLowerCase().includes('chưa');
@@ -216,7 +225,7 @@ export async function fetchGuestsFromGoogleSheet(sheetUrl: string): Promise<Gues
         group: 'Bạn Chú rể',
         phone: '',
         status: isDeclined ? 'declined' : isPending ? 'pending' : 'attending',
-        attendeesCount: isDeclined ? 0 : isNaN(countRaw) ? 1 : countRaw,
+        attendeesCount: isDeclined || isPending ? 0 : (isNaN(countRaw) ? 1 : countRaw),
         customSlug: encodeURIComponent(nameVal),
       });
     }

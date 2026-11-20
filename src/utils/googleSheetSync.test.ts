@@ -31,6 +31,18 @@ test('buildSheetRowPayload correctly structures 4-column payload with Bình ch�
   assert.equal(payloadDeclined['Họ tên'], 'Trần Thị B');
   assert.equal(payloadDeclined['Bình chọn'], 'Bận không tới được');
   assert.equal(payloadDeclined['Số lượng'], 0);
+
+  const payloadPending = buildSheetRowPayload({
+    stt: 3,
+    name: 'Lê Văn C',
+    status: 'pending',
+    attendeesCount: 0,
+  });
+
+  assert.equal(payloadPending.STT, 3);
+  assert.equal(payloadPending['Họ tên'], 'Lê Văn C');
+  assert.equal(payloadPending['Bình chọn'], '');
+  assert.equal(payloadPending['Số lượng'], 0);
 });
 
 test('resolveGoogleSheetWebhookUrl returns string from config or fallback', () => {

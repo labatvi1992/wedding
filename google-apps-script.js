@@ -45,7 +45,7 @@ function doGet(e) {
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       if (!row[1]) continue; // Bỏ qua nếu thiếu họ tên
-      const voteValue = row[2] || 'Chưa phản hồi';
+      const voteValue = row[2] !== undefined && row[2] !== null ? String(row[2]).trim() : '';
       rows.push({
         STT: row[0] || i,
         'Họ tên': String(row[1]).trim(),
@@ -84,11 +84,33 @@ function doPost(e) {
       return jsonResponse({ success: false, message: 'Thiếu thông tin họ tên khách mời' });
     }
 
-    // Nhận "Bình chọn" / binhChon (ưu tiên) hoặc fallback về Vote/status cũ
-    const binhChon = payload['Bình chọn'] || payload.binhChon || payload.vote || payload.Vote ||
-      (payload.status === 'declined' ? 'Bận không tới được' : 'Sẽ tham dự');
+    // Nhận "Bình chọn" / binhChon (hỗ trợ chuỗi rỗng khi tạo khách mới)
+    let binhChon = '';
+    if (payload['Bình chọn'] !== undefined) {
+      binhChon = String(payload['Bình chọn']).trim();
+    } else if (payload.binhChon !== undefined) {
+      binhChon = String(payload.binhChon).trim();
+    } else if (payload.vote !== undefined || payload.Vote !== undefined) {
+      binhChon = String(payload.vote || payload.Vote).trim();
+    } else if (payload.status === 'declined') {
+      binhChon = 'Bận không tới được';
+    } else if (payload.status === 'attending') {
+      binhChon = 'Sẽ tham dự';
+    } else {
+      binhChon = '';
+    }
 
-    const soLuong = binhChon === 'Bận không tới được' ? 0 : Math.max(1, Number(payload.soLuong || payload['Số lượng'] || payload.attendeesCount || 1));
+    // Nhận "Số lượng": nếu rỗng/chưa xác nhận hoặc bận thì để 0
+    let soLuong = 0;
+    const rawCount = payload['Số lượng'] !== undefined ? payload['Số lượng'] :
+      (payload.soLuong !== undefined ? payload.soLuong : payload.attendeesCount);
+    if (rawCount !== undefined && rawCount !== null && !isNaN(Number(rawCount))) {
+      soLuong = Math.max(0, Number(rawCount));
+    } else if (binhChon === 'Sẽ tham dự') {
+      soLuong = 1;
+    } else {
+      soLuong = 0;
+    }
 
     const data = sheet.getDataRange().getValues();
     let rowIndexToUpdate = -1;

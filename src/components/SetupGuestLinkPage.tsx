@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Link2,
   Copy,
@@ -66,6 +66,13 @@ export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
     }
   };
 
+  const onUpdateGuestsRef = useRef(onUpdateGuests);
+  useEffect(() => {
+    onUpdateGuestsRef.current = onUpdateGuests;
+  }, [onUpdateGuests]);
+
+  const isSyncingRef = useRef(false);
+
   // Synchronize guest rows from GOOGLE_SHEET_WEB_APP_URL
   const syncFromGoogleSheet = useCallback(async () => {
     if (!webhookUrl) {
@@ -73,27 +80,31 @@ export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
       return;
     }
 
+    if (isSyncingRef.current) return;
+    isSyncingRef.current = true;
     setIsSyncing(true);
     setSyncMessage(null);
-    const fetched = await fetchGuestsFromGoogleSheet(webhookUrl);
-    setIsSyncing(false);
 
-    if (fetched !== null) {
-      setSheetGuests(fetched);
-      if (fetched.length > 0) {
-        onUpdateGuests(fetched);
+    try {
+      const fetched = await fetchGuestsFromGoogleSheet(webhookUrl);
+      if (fetched !== null) {
+        setSheetGuests(fetched);
+        onUpdateGuestsRef.current?.(fetched);
+      } else {
+        setSyncMessage('Không thể tải dữ liệu từ Google Sheet. Vui lòng kiểm tra lại GOOGLE_SHEET_WEB_APP_URL.');
       }
-    } else {
-      setSyncMessage('Không thể tải dữ liệu từ Google Sheet. Đang hiển thị dữ liệu hiện có.');
+    } finally {
+      isSyncingRef.current = false;
+      setIsSyncing(false);
     }
-  }, [webhookUrl, onUpdateGuests]);
+  }, [webhookUrl]);
 
   useEffect(() => {
     syncFromGoogleSheet();
   }, [syncFromGoogleSheet]);
 
-  // Active list displayed: strictly synced from Google Sheet when GOOGLE_SHEET_WEB_APP_URL is present
-  const displayedGuests = webhookUrl ? (sheetGuests.length > 0 ? sheetGuests : guests) : [];
+  // Active list displayed: strictly synced from Google Sheet without demo fallback
+  const displayedGuests = sheetGuests;
 
   const totalPages = Math.max(1, Math.ceil(displayedGuests.length / PAGE_SIZE));
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -120,8 +131,8 @@ export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
     const payload = buildSheetRowPayload({
       stt: nextStt,
       name: trimmed,
-      status: 'attending',
-      attendeesCount: 1,
+      status: 'pending',
+      attendeesCount: 0,
     });
 
     const ok = await submitRowToGoogleSheet(webhookUrl, payload);
@@ -132,8 +143,8 @@ export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
         relationship: 'Khách quý',
         group: 'Bạn Chú rể',
         phone: '',
-        status: 'attending',
-        attendeesCount: 1,
+        status: 'pending',
+        attendeesCount: 0,
         customSlug: encodeURIComponent(trimmed),
       };
       const updated = [...displayedGuests, newGuest];
@@ -335,9 +346,13 @@ export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
                         ? 'Bận không tới được'
                         : guest.status === 'attending'
                         ? 'Sẽ tham dự'
-                        : 'Chưa xác nhận';
+                        : '';
                     const countVal =
-                      guest.status === 'declined' ? 0 : guest.attendeesCount || 1;
+                      guest.status === 'declined'
+                        ? 0
+                        : guest.status === 'attending'
+                        ? guest.attendeesCount || 1
+                        : guest.attendeesCount ?? 0;
 
                     return (
                       <div
@@ -351,17 +366,21 @@ export const SetupGuestLinkPage: React.FC<SetupGuestLinkPageProps> = ({
                           {guest.name}
                         </div>
                         <div className="col-span-3 pr-1">
-                          <span
-                            className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-semibold ${
-                              guest.status === 'declined'
-                                ? 'bg-stone-200 text-stone-700'
-                                : guest.status === 'attending'
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-amber-50 text-amber-700'
-                            }`}
-                          >
-                            {voteLabel}
-                          </span>
+                          {voteLabel ? (
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-semibold ${
+                                guest.status === 'declined'
+                                  ? 'bg-stone-200 text-stone-700'
+                                  : 'bg-emerald-50 text-emerald-700'
+                              }`}
+                            >
+                              {voteLabel}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-stone-400 italic">
+                              (Trống)
+                            </span>
+                          )}
                         </div>
                         <div className="col-span-1 text-center font-mono font-bold">
                           {countVal}
